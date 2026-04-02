@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Menu Bar · Plantillas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root { --bg:#060d24; --s0:#0f1834; --s1:#151e3c; --s2:#1a2547; --accent:#9effc8; --accent-dim:#00ec9a; --text:#e8edf8; --dim:#6b7a99; --error:#d7383b; --r:6px; }
+* { box-sizing:border-box; margin:0; padding:0; }
+body { font-family:'Inter',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
+
+/* ===== HEADER ===== */
+header {
+  position:sticky; top:0; z-index:100;
+  height:56px; padding:0 24px; background:var(--s0);
+  border-bottom:1px solid rgba(255,255,255,0.05);
+  display:flex; align-items:center; gap:16px;
+}
+.logo { font-family:'Manrope',sans-serif; font-size:15px; font-weight:700; }
+.logo span { color:var(--accent); }
+.hdr-right { margin-left:auto; display:flex; align-items:center; gap:12px; }
+.hdr-user { font-size:12px; color:var(--dim); }
+.hdr-btn {
+  padding:6px 14px; border-radius:var(--r); border:1px solid rgba(255,255,255,0.1);
+  background:transparent; color:var(--dim); cursor:pointer;
+  font-size:12px; font-family:'Manrope',sans-serif; font-weight:600;
+  transition:all 0.15s; letter-spacing:0.05em;
+}
+.hdr-btn:hover { color:var(--text); border-color:rgba(255,255,255,0.25); }
+.hdr-btn.primary {
+  background:linear-gradient(135deg,var(--accent-dim),var(--accent));
+  color:#060d24; border-color:transparent; font-weight:700;
+  box-shadow:0 0 16px rgba(0,236,154,0.2);
+}
+.hdr-btn.primary:hover { opacity:0.9; box-shadow:0 0 24px rgba(0,236,154,0.35); }
+
+/* ===== LIST VIEW ===== */
+#view-list { padding:32px 24px; max-width:960px; margin:0 auto; }
+.page-title { font-family:'Manrope',sans-serif; font-size:22px; font-weight:700; margin-bottom:24px; }
+.page-title span { color:var(--accent); }
+
+.grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:16px; }
+
+.tmpl-card {
+  background:var(--s0); border-radius:10px; padding:20px;
+  border:1px solid rgba(255,255,255,0.05);
+  display:flex; flex-direction:column; gap:12px;
+  transition:border-color 0.15s, transform 0.15s;
+}
+.tmpl-card:hover { border-color:rgba(158,255,200,0.15); transform:translateY(-1px); }
+
+.tmpl-card-top { display:flex; align-items:flex-start; gap:8px; }
+.tmpl-name { font-family:'Manrope',sans-serif; font-size:15px; font-weight:600; flex:1; }
+.menu-wrap { position:relative; flex-shrink:0; }
+.menu-btn {
+  width:28px; height:28px; border-radius:var(--r); border:none;
+  background:transparent; color:var(--dim); cursor:pointer;
+  font-size:16px; font-weight:700; display:flex; align-items:center; justify-content:center;
+  transition:background 0.1s; letter-spacing:0.05em;
+}
+.menu-btn:hover { background:var(--s2); color:var(--text); }
+.dropdown {
+  display:none; position:absolute; right:0; top:32px; z-index:50;
+  background:var(--s1); border-radius:var(--r);
+  border:1px solid rgba(255,255,255,0.08);
+  box-shadow:0 8px 24px rgba(0,0,0,0.4);
+  min-width:140px; overflow:hidden;
+}
+.dropdown.open { display:block; }
+.dropdown button {
+  width:100%; padding:10px 14px; background:transparent; border:none;
+  color:var(--text); text-align:left; cursor:pointer; font-size:13px;
+  font-family:'Inter',sans-serif; transition:background 0.1s;
+  display:block;
+}
+.dropdown button:hover { background:var(--s2); }
+.dropdown button.del { color:var(--error); }
+
+.tmpl-info { font-size:12px; color:var(--dim); }
+
+.btn-generar {
+  padding:10px; border-radius:var(--r); border:none; cursor:pointer;
+  background:linear-gradient(135deg,var(--accent-dim),var(--accent));
+  color:#060d24; font-size:13px; font-weight:700;
+  font-family:'Manrope',sans-serif; letter-spacing:0.05em;
+  box-shadow:0 0 16px rgba(0,236,154,0.15);
+  transition:opacity 0.15s, box-shadow 0.15s;
+}
+.btn-generar:hover { opacity:0.9; box-shadow:0 0 24px rgba(0,236,154,0.3); }
+
+.empty {
+  grid-column:1/-1; text-align:center; padding:64px 0;
+  color:var(--dim); font-size:14px; line-height:2;
+}
+.empty strong { display:block; font-family:'Manrope',sans-serif; font-size:18px; color:var(--text); margin-bottom:8px; }
+
+/* ===== FORM VIEW ===== */
+#view-form {
+  display:none; max-width:560px; margin:0 auto; padding:32px 24px;
+}
+.back-btn {
+  display:inline-flex; align-items:center; gap:6px;
+  font-size:13px; color:var(--dim); cursor:pointer; background:none; border:none;
+  font-family:'Inter',sans-serif; padding:0; margin-bottom:24px;
+  transition:color 0.15s;
+}
+.back-btn:hover { color:var(--text); }
+
+.form-title { font-family:'Manrope',sans-serif; font-size:22px; font-weight:700; margin-bottom:6px; }
+.form-subtitle { font-size:13px; color:var(--dim); margin-bottom:28px; }
+
+.form-card { background:var(--s0); border-radius:10px; padding:20px; border:1px solid rgba(255,255,255,0.05); margin-bottom:16px; display:flex; flex-direction:column; gap:12px; }
+.form-card-title { font-family:'Manrope',sans-serif; font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:0.12em; color:var(--accent-dim); }
+
+.form-field { display:flex; flex-direction:column; gap:4px; }
+.form-field label { font-size:12px; color:var(--dim); }
+.form-field input, .form-field textarea {
+  background:var(--s1); border:none; border-bottom:2px solid transparent;
+  color:var(--text); padding:9px 10px; border-radius:var(--r) var(--r) 0 0;
+  font-size:13px; font-family:'Inter',sans-serif; outline:none; width:100%;
+  transition:border-color 0.15s;
+}
+.form-field input:focus, .form-field textarea:focus { border-bottom-color:var(--accent-dim); }
+.form-field textarea { min-height:80px; resize:vertical; }
+input[type="file"] {
+  font-size:12px; color:var(--dim); background:var(--s1);
+  border:1.5px dashed rgba(158,255,200,0.2); padding:9px 10px;
+  border-radius:var(--r); width:100%; cursor:pointer; font-family:'Inter',sans-serif;
+}
+
+.render-btn {
+  width:100%; padding:13px; border-radius:var(--r); border:none; cursor:pointer;
+  background:linear-gradient(135deg,var(--accent-dim),var(--accent));
+  color:#060d24; font-size:14px; font-weight:700; font-family:'Manrope',sans-serif;
+  letter-spacing:0.05em; box-shadow:0 0 20px rgba(0,236,154,0.2);
+  transition:opacity 0.15s, box-shadow 0.15s;
+}
+.render-btn:hover:not(:disabled) { opacity:0.9; box-shadow:0 0 32px rgba(0,236,154,0.35); }
+.render-btn:disabled { background:var(--s2); color:var(--dim); box-shadow:none; cursor:not-allowed; }
+
+.form-status { font-size:12px; color:var(--dim); min-height:16px; }
+.form-status.ok { color:var(--accent-dim); }
+.form-status.err { color:var(--error); }
+
+#form-result-img { width:100%; border-radius:var(--r); display:none; margin-top:8px; }
+#form-dl { display:none; text-align:center; font-size:12px; color:var(--accent-dim); text-decoration:none; padding:8px; font-family:'Manrope',sans-serif; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo"><span>[</span> MENU BAR <span>]</span></div>
+  <div class="hdr-right">
+    <span class="hdr-user" id="hdr-user"></span>
+    <button class="hdr-btn primary" onclick="location.href='/editor.html'">+ Nueva plantilla</button>
+    <button class="hdr-btn" id="btn-logout">Salir</button>
+  </div>
+</header>
+
+<!-- LISTA -->
+<div id="view-list">
+  <div class="page-title">Mis <span>Plantillas</span></div>
+  <div class="grid" id="grid"></div>
+</div>
+
+<!-- FORMULARIO -->
+<div id="view-form">
+  <button class="back-btn" id="back-btn">← Volver a plantillas</button>
+  <div class="form-title" id="form-title"></div>
+  <div class="form-subtitle">Rellena los campos y genera la imagen</div>
+  <div id="form-body"></div>
+</div>
+
+<script>
+// ===== AUTH =====
+const token = localStorage.getItem('token');
+if (!token) location.href = '/login.html';
+document.getElementById('hdr-user').textContent = localStorage.getItem('username') || '';
+
+document.getElementById('btn-logout').addEventListener('click', () => {
+  localStorage.removeItem('token'); localStorage.removeItem('username');
+  location.href = '/login.html';
+});
+
+function api(url, opts = {}) {
+  return fetch(url, {
+    ...opts,
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`, ...(opts.headers || {}) },
+    body: opts.body ? (typeof opts.body === 'string' ? opts.body : JSON.stringify(opts.body)) : undefined,
+  });
+}
+
+// ===== LOAD TEMPLATES =====
+let templates = [];
+
+async function loadTemplates() {
+  const res = await api('/api/templates');
+  if (res.status === 401) { location.href = '/login.html'; return; }
+  templates = await res.json();
+  renderGrid();
+}
+
+function renderGrid() {
+  const grid = document.getElementById('grid');
+  grid.innerHTML = '';
+
+  if (!templates.length) {
+    grid.innerHTML = `<div class="empty"><strong>Sin plantillas</strong>Crea tu primera plantilla con el botón "+ Nueva plantilla"</div>`;
+    return;
+  }
+
+  for (const t of templates) {
+    const card = document.createElement('div');
+    card.className = 'tmpl-card';
+    const date = new Date(t.updated_at).toLocaleDateString('es-ES', { day:'2-digit', month:'short', year:'numeric' });
+    card.innerHTML = `
+      <div class="tmpl-card-top">
+        <div class="tmpl-name">${t.name}</div>
+        <div class="menu-wrap">
+          <button class="menu-btn" data-id="${t.id}">···</button>
+          <div class="dropdown" id="dd-${t.id}">
+            <button onclick="editTemplate(${t.id})">Editar</button>
+            <button class="del" onclick="deleteTemplate(${t.id})">Eliminar</button>
+          </div>
+        </div>
+      </div>
+      <div class="tmpl-info">Actualizada ${date}</div>
+      <button class="btn-generar" onclick="openForm(${t.id})">GENERAR MENÚ</button>`;
+    grid.appendChild(card);
+  }
+
+  // Cerrar dropdowns al hacer click fuera
+  document.addEventListener('click', e => {
+    if (!e.target.classList.contains('menu-btn')) {
+      document.querySelectorAll('.dropdown.open').forEach(d => d.classList.remove('open'));
+    }
+  });
+  document.querySelectorAll('.menu-btn').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      document.querySelectorAll('.dropdown.open').forEach(d => d.classList.remove('open'));
+      document.getElementById(`dd-${btn.dataset.id}`).classList.toggle('open');
+    });
+  });
+}
+
+function editTemplate(id) { location.href = `/editor.html?id=${id}`; }
+
+async function deleteTemplate(id) {
+  if (!confirm('¿Eliminar esta plantilla?')) return;
+  await api(`/api/templates/${id}`, { method: 'DELETE' });
+  templates = templates.filter(t => t.id !== id);
+  renderGrid();
+}
+
+// ===== FORM VIEW =====
+let currentTemplate = null;
+let formState = {};
+
+async function openForm(id) {
+  const res = await api(`/api/templates/${id}`);
+  const tpl = await res.json();
+  currentTemplate = tpl;
+  formState = {};
+
+  document.getElementById('view-list').style.display = 'none';
+  document.getElementById('view-form').style.display = 'block';
+  document.getElementById('form-title').textContent = tpl.name;
+
+  buildForm(tpl.config);
+}
+
+document.getElementById('back-btn').addEventListener('click', () => {
+  document.getElementById('view-form').style.display = 'none';
+  document.getElementById('view-list').style.display = 'block';
+  currentTemplate = null; formState = {};
+});
+
+function getFmtConfig(config, fmt) {
+  // New multi-format structure or legacy fallback
+  return config[fmt] ?? config;
+}
+
+function getAvailableFormats(config) {
+  if (config.story || config.folio) {
+    const out = [];
+    if (config.story?.blocks?.length) out.push('story');
+    if (config.folio?.blocks?.length) out.push('folio');
+    return out.length ? out : ['story'];
+  }
+  return [config.formato ?? 'story'];
+}
+
+function buildDynamicSection(config, fmt, container) {
+  container.innerHTML = '';
+  const fmtConfig = getFmtConfig(config, fmt);
+  const varBlocks = (fmtConfig.blocks ?? []).filter(b => b.type === 'variable');
+
+  if (!fmtConfig.fondo_locked || !fmtConfig.fondo_b64) {
+    const card = makeCard('Fondo');
+    const ff = field('Imagen de fondo', `<input type="file" id="ff-fondo" accept="image/*">`);
+    card.appendChild(ff);
+    container.appendChild(card);
+    document.getElementById('ff-fondo').addEventListener('change', async e => {
+      const f = e.target.files[0]; if (!f) return;
+      formState.fondo_b64 = await toB64(f);
+    });
+  }
+
+  if (varBlocks.length) {
+    const card = makeCard('Campos del menú');
+    for (const b of varBlocks) {
+      const inputId = `ff-${b.key}`;
+      const inputHtml = b.multiline
+        ? `<textarea id="${inputId}" placeholder="${b.label}..."></textarea>`
+        : `<input type="text" id="${inputId}" placeholder="${b.label}...">`;
+      card.appendChild(field(b.label, inputHtml));
+    }
+    container.appendChild(card);
+  }
+}
+
+function buildForm(config) {
+  const body = document.getElementById('form-body');
+  body.innerHTML = '';
+
+  const available = getAvailableFormats(config);
+  const FMT_LABELS = { story: 'Story Instagram (1080×1920)', folio: 'A4 / Folio (2480×3508)' };
+  formState.selectedFormat = available[0];
+  formState.fondo_b64 = null;
+
+  // Format selector (always visible)
+  const fmtCard = makeCard('Formato de exportación');
+  const fmtBtns = document.createElement('div');
+  fmtBtns.style.cssText = 'display:flex;gap:8px;';
+  const ALL_FMTS = ['story', 'folio'];
+  for (const fmt of ALL_FMTS) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.dataset.fmt = fmt;
+    btn.textContent = FMT_LABELS[fmt] ?? fmt;
+    const isAvailable = available.includes(fmt);
+    btn.style.cssText = `flex:1;padding:10px 8px;border-radius:var(--r);border:1px solid;cursor:${isAvailable ? 'pointer' : 'not-allowed'};font-size:12px;font-family:'Manrope',sans-serif;font-weight:600;letter-spacing:0.04em;transition:all 0.15s;opacity:${isAvailable ? '1' : '0.35'};`;
+    if (!isAvailable) btn.disabled = true;
+    btn.addEventListener('click', () => {
+      if (!isAvailable) return;
+      formState.selectedFormat = fmt;
+      formState.fondo_b64 = null;
+      fmtBtns.querySelectorAll('button').forEach(b => {
+        const active = b.dataset.fmt === fmt;
+        b.style.background = active ? 'linear-gradient(135deg,var(--accent-dim),var(--accent))' : 'transparent';
+        b.style.color = active ? '#060d24' : 'var(--dim)';
+        b.style.borderColor = active ? 'transparent' : 'rgba(255,255,255,0.15)';
+      });
+      buildDynamicSection(config, fmt, dynamicDiv);
+    });
+    fmtBtns.appendChild(btn);
+  }
+  // Set initial active state
+  fmtBtns.querySelectorAll('button').forEach(b => {
+    const active = b.dataset.fmt === formState.selectedFormat;
+    b.style.background = active ? 'linear-gradient(135deg,var(--accent-dim),var(--accent))' : 'transparent';
+    b.style.color = active ? '#060d24' : 'var(--dim)';
+    b.style.borderColor = active ? 'transparent' : 'rgba(255,255,255,0.15)';
+  });
+  fmtCard.appendChild(fmtBtns);
+  body.appendChild(fmtCard);
+
+  // Dynamic section: fondo + fields
+  const dynamicDiv = document.createElement('div');
+  dynamicDiv.id = 'form-dynamic';
+  body.appendChild(dynamicDiv);
+  buildDynamicSection(config, formState.selectedFormat, dynamicDiv);
+
+  // Render button
+  const renderCard = makeCard('');
+  const status = document.createElement('div');
+  status.className = 'form-status'; status.id = 'form-status';
+  const btn = document.createElement('button');
+  btn.className = 'render-btn'; btn.id = 'form-render-btn'; btn.textContent = 'GENERAR IMAGEN';
+  const img = document.createElement('img');
+  img.id = 'form-result-img';
+  const dl = document.createElement('a');
+  dl.id = 'form-dl'; dl.download = 'menu.png'; dl.textContent = '⬇ Descargar PNG';
+  renderCard.append(status, btn, img, dl);
+  body.appendChild(renderCard);
+
+  btn.addEventListener('click', () => renderForm(config, status, btn, img, dl));
+}
+
+async function renderForm(config, statusEl, btn, imgEl, dlEl) {
+  const fmt = formState.selectedFormat ?? 'story';
+  const fmtConfig = getFmtConfig(config, fmt);
+  const fondo_b64 = formState.fondo_b64 || fmtConfig.fondo_b64;
+  if (!fondo_b64) { statusEl.textContent = '⚠ Sube una imagen de fondo'; statusEl.className = 'form-status err'; return; }
+
+  btn.disabled = true; statusEl.textContent = 'Generando...'; statusEl.className = 'form-status';
+
+  const filledBlocks = (fmtConfig.blocks ?? []).map(b => {
+    let content = b.type === 'static' ? b.content : (document.getElementById(`ff-${b.key}`)?.value || '');
+    if (b.multiline) content = content.split('\n').filter(s => s.trim());
+    return { x: b.x, y: b.y, w: b.w, align: b.align, content, font_family: b.font_family, font_size: b.font_size, text_color: b.text_color };
+  });
+
+  const body = {
+    fondo_b64, formato: fmt,
+    letter_spacing: config.letter_spacing,
+    blocks: filledBlocks,
+  };
+
+  try {
+    const res = await api('/api/render', { method: 'POST', body: JSON.stringify(body) });
+    if (!res.ok) { const e = await res.json(); throw new Error(e.error); }
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    imgEl.src = url; imgEl.style.display = 'block';
+    dlEl.href = url; dlEl.style.display = 'block';
+    statusEl.textContent = '✓ Imagen generada'; statusEl.className = 'form-status ok';
+  } catch (err) {
+    statusEl.textContent = '❌ ' + err.message; statusEl.className = 'form-status err';
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+// ===== UTILS =====
+function makeCard(title) {
+  const card = document.createElement('div');
+  card.className = 'form-card';
+  if (title) {
+    const t = document.createElement('div');
+    t.className = 'form-card-title'; t.textContent = title;
+    card.appendChild(t);
+  }
+  return card;
+}
+function field(label, inputHtml) {
+  const d = document.createElement('div');
+  d.className = 'form-field';
+  d.innerHTML = `<label>${label}</label>${inputHtml}`;
+  return d;
+}
+function toB64(file) {
+  return new Promise(r => {
+    const fr = new FileReader();
+    fr.onload = e => r(e.target.result.split(',')[1]);
+    fr.readAsDataURL(file);
+  });
+}
+
+loadTemplates();
+</script>
+</body>
+</html>

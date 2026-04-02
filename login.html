@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Menu Bar · Acceder</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root { --bg:#060d24; --s0:#0f1834; --s1:#151e3c; --accent:#9effc8; --accent-dim:#00ec9a; --text:#e8edf8; --dim:#6b7a99; --error:#d7383b; --r:6px; }
+* { box-sizing:border-box; margin:0; padding:0; }
+body { font-family:'Inter',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; display:flex; align-items:center; justify-content:center; }
+
+.card {
+  width:100%; max-width:380px; padding:40px;
+  background:var(--s0); border-radius:12px;
+  box-shadow:0 0 0 1px rgba(158,255,200,0.07), 0 32px 64px rgba(0,0,0,0.5);
+}
+
+.logo { font-family:'Manrope',sans-serif; font-size:20px; font-weight:700; text-align:center; margin-bottom:32px; }
+.logo span { color:var(--accent); }
+
+.field { display:flex; flex-direction:column; gap:5px; margin-bottom:14px; }
+.field label { font-size:11px; color:var(--dim); letter-spacing:0.06em; text-transform:uppercase; font-family:'Manrope',sans-serif; font-weight:600; }
+.field input {
+  background:var(--s1); border:none; border-bottom:2px solid transparent;
+  color:var(--text); padding:10px 12px; border-radius:var(--r) var(--r) 0 0;
+  font-size:14px; font-family:'Inter',sans-serif; outline:none; transition:border-color 0.15s;
+}
+.field input:focus { border-bottom-color:var(--accent-dim); }
+
+#error {
+  font-size:12px; color:var(--error); text-align:center;
+  min-height:16px; margin-bottom:8px;
+}
+
+button {
+  width:100%; margin-top:8px; padding:12px;
+  background:linear-gradient(135deg,var(--accent-dim),var(--accent));
+  color:#060d24; border:none; border-radius:var(--r);
+  font-size:14px; font-weight:700; font-family:'Manrope',sans-serif;
+  letter-spacing:0.05em; cursor:pointer;
+  box-shadow:0 0 24px rgba(0,236,154,0.2);
+  transition:opacity 0.15s, box-shadow 0.15s;
+}
+button:hover { opacity:0.9; box-shadow:0 0 32px rgba(0,236,154,0.35); }
+button:disabled { background:var(--s1); color:var(--dim); box-shadow:none; cursor:not-allowed; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="logo"><span>[</span> MENU BAR <span>]</span></div>
+
+  <div class="field">
+    <label>Usuario</label>
+    <input type="text" id="username" autocomplete="username" placeholder="usuario">
+  </div>
+  <div class="field">
+    <label>Contraseña</label>
+    <input type="password" id="password" autocomplete="current-password" placeholder="••••••">
+  </div>
+
+  <div id="error"></div>
+  <button id="btn-login">Entrar</button>
+</div>
+
+<script>
+// Si ya está logueado, redirigir
+if (localStorage.getItem('token')) location.href = '/templates.html';
+
+async function login() {
+  const username = document.getElementById('username').value.trim();
+  const password = document.getElementById('password').value;
+  const btn = document.getElementById('btn-login');
+  const errEl = document.getElementById('error');
+
+  if (!username || !password) { errEl.textContent = 'Rellena todos los campos'; return; }
+
+  btn.disabled = true; btn.textContent = 'Entrando...'; errEl.textContent = '';
+
+  try {
+    const res = await fetch('/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error);
+    localStorage.setItem('token', data.token);
+    localStorage.setItem('username', data.username);
+    location.href = '/templates.html';
+  } catch (err) {
+    errEl.textContent = err.message || 'Error al conectar';
+    btn.disabled = false; btn.textContent = 'Entrar';
+  }
+}
+
+document.getElementById('btn-login').addEventListener('click', login);
+document.addEventListener('keydown', e => { if (e.key === 'Enter') login(); });
+</script>
+</body>
+</html>
