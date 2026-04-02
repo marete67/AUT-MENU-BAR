@@ -34,6 +34,46 @@ async function initDB() {
       )
     `);
 
+    await conn.execute(`
+      CREATE TABLE IF NOT EXISTS scheduled_emails (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id INT NOT NULL,
+        template_name VARCHAR(255),
+        email_to VARCHAR(255) NOT NULL,
+        subject VARCHAR(255),
+        send_at DATETIME NOT NULL,
+        render_config LONGTEXT NOT NULL,
+        status ENUM('pending','sent','failed') DEFAULT 'pending',
+        error_msg TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id)
+      )
+    `);
+
+    await conn.execute(`
+      ALTER TABLE users
+        ADD COLUMN IF NOT EXISTS instagram_id VARCHAR(64) DEFAULT NULL,
+        ADD COLUMN IF NOT EXISTS instagram_access_token TEXT DEFAULT NULL,
+        ADD COLUMN IF NOT EXISTS instagram_token_expires_at DATETIME DEFAULT NULL,
+        ADD COLUMN IF NOT EXISTS instagram_username VARCHAR(64) DEFAULT NULL
+    `);
+
+    await conn.execute(`
+      CREATE TABLE IF NOT EXISTS scheduled_posts (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id INT NOT NULL,
+        template_name VARCHAR(255),
+        scheduled_at DATETIME NOT NULL,
+        render_config LONGTEXT NOT NULL,
+        status ENUM('pending','published','failed') DEFAULT 'pending',
+        ig_media_id VARCHAR(128),
+        ig_post_url VARCHAR(512),
+        error_msg TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id)
+      )
+    `);
+
     // Usuario por defecto hardcodeado
     await conn.execute(
       `INSERT IGNORE INTO users (username, password) VALUES (?, ?)`,

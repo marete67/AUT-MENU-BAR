@@ -145,6 +145,43 @@ input[type="file"] {
 
 #form-result-img { width:100%; border-radius:var(--r); display:none; margin-top:8px; }
 #form-dl { display:none; text-align:center; font-size:12px; color:var(--accent-dim); text-decoration:none; padding:8px; font-family:'Manrope',sans-serif; }
+
+/* ===== EMAIL SECTION ===== */
+#email-section { display:none; }
+.email-tabs { display:flex; gap:8px; margin-bottom:4px; }
+.email-tab {
+  flex:1; padding:9px 8px; border-radius:var(--r); border:1px solid rgba(255,255,255,0.15);
+  background:transparent; color:var(--dim); cursor:pointer;
+  font-size:12px; font-family:'Manrope',sans-serif; font-weight:600;
+  letter-spacing:0.04em; transition:all 0.15s;
+}
+.email-tab.active {
+  background:linear-gradient(135deg,var(--accent-dim),var(--accent));
+  color:#060d24; border-color:transparent;
+}
+.email-panel { display:none; flex-direction:column; gap:12px; }
+.email-panel.active { display:flex; }
+.email-send-btn {
+  padding:10px; border-radius:var(--r); border:none; cursor:pointer;
+  background:linear-gradient(135deg,#3b6fd4,#5b8ff9);
+  color:#fff; font-size:13px; font-weight:700;
+  font-family:'Manrope',sans-serif; letter-spacing:0.05em;
+  transition:opacity 0.15s;
+}
+.email-send-btn:hover:not(:disabled) { opacity:0.85; }
+.email-send-btn:disabled { background:var(--s2); color:var(--dim); cursor:not-allowed; }
+.scheduled-list { display:flex; flex-direction:column; gap:6px; }
+.scheduled-item {
+  display:flex; align-items:center; justify-content:space-between;
+  background:var(--s2); border-radius:var(--r); padding:8px 10px;
+  font-size:12px; gap:8px;
+}
+.scheduled-item-info { flex:1; color:var(--dim); line-height:1.5; }
+.scheduled-item-info strong { color:var(--text); }
+.scheduled-cancel {
+  background:none; border:none; color:var(--error); cursor:pointer;
+  font-size:18px; line-height:1; padding:0 4px;
+}
 </style>
 </head>
 <body>
@@ -153,6 +190,7 @@ input[type="file"] {
   <div class="logo"><span>[</span> MENU BAR <span>]</span></div>
   <div class="hdr-right">
     <span class="hdr-user" id="hdr-user"></span>
+    <div id="ig-header" style="display:flex;align-items:center;gap:8px;"></div>
     <button class="hdr-btn primary" onclick="location.href='/editor.html'">+ Nueva plantilla</button>
     <button class="hdr-btn" id="btn-logout">Salir</button>
   </div>
@@ -170,6 +208,61 @@ input[type="file"] {
   <div class="form-title" id="form-title"></div>
   <div class="form-subtitle">Rellena los campos y genera la imagen</div>
   <div id="form-body"></div>
+
+  <!-- PANEL INSTAGRAM -->
+  <div id="ig-section" style="display:none">
+    <div class="form-card">
+      <div class="form-card-title">Publicar en Instagram Stories</div>
+      <div id="ig-section-body"></div>
+    </div>
+    <div class="form-card" id="ig-scheduled-card" style="display:none">
+      <div class="form-card-title">Publicaciones programadas</div>
+      <div class="scheduled-list" id="ig-scheduled-list"></div>
+    </div>
+  </div>
+
+  <!-- PANEL CORREO -->
+  <div id="email-section">
+    <div class="form-card">
+      <div class="form-card-title">Enviar por correo</div>
+      <div class="email-tabs">
+        <button class="email-tab active" id="tab-now" onclick="switchEmailTab('now')">Enviar ahora</button>
+        <button class="email-tab" id="tab-schedule" onclick="switchEmailTab('schedule')">Programar envío</button>
+      </div>
+
+      <!-- Campos comunes -->
+      <div class="form-field">
+        <label>Destinatario</label>
+        <input type="email" id="email-to" placeholder="correo@destino.com">
+      </div>
+      <div class="form-field">
+        <label>Asunto</label>
+        <input type="text" id="email-subject" placeholder="Menú del día">
+      </div>
+
+      <!-- Panel: ahora -->
+      <div class="email-panel active" id="panel-now">
+        <div class="form-status" id="email-status-now"></div>
+        <button class="email-send-btn" id="btn-send-now" onclick="sendEmailNow()">ENVIAR AHORA</button>
+      </div>
+
+      <!-- Panel: programar -->
+      <div class="email-panel" id="panel-schedule">
+        <div class="form-field">
+          <label>Fecha y hora de envío</label>
+          <input type="datetime-local" id="email-send-at">
+        </div>
+        <div class="form-status" id="email-status-schedule"></div>
+        <button class="email-send-btn" id="btn-schedule" onclick="scheduleEmail()">PROGRAMAR ENVÍO</button>
+      </div>
+    </div>
+
+    <!-- Lista de envíos programados pendientes -->
+    <div class="form-card" id="scheduled-card" style="display:none">
+      <div class="form-card-title">Envíos programados</div>
+      <div class="scheduled-list" id="scheduled-list"></div>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -274,7 +367,9 @@ async function openForm(id) {
 document.getElementById('back-btn').addEventListener('click', () => {
   document.getElementById('view-form').style.display = 'none';
   document.getElementById('view-list').style.display = 'block';
-  currentTemplate = null; formState = {};
+  document.getElementById('email-section').style.display = 'none';
+  document.getElementById('ig-section').style.display = 'none';
+  currentTemplate = null; formState = {}; currentRenderConfig = null;
 });
 
 function getFmtConfig(config, fmt) {
@@ -417,11 +512,266 @@ async function renderForm(config, statusEl, btn, imgEl, dlEl) {
     imgEl.src = url; imgEl.style.display = 'block';
     dlEl.href = url; dlEl.style.display = 'block';
     statusEl.textContent = '✓ Imagen generada'; statusEl.className = 'form-status ok';
+    showEmailSection(body, currentTemplate.name);
+    showIGSection(body, currentTemplate.name);
   } catch (err) {
     statusEl.textContent = '❌ ' + err.message; statusEl.className = 'form-status err';
   } finally {
     btn.disabled = false;
   }
+}
+
+// ===== INSTAGRAM =====
+async function loadIgStatus() {
+  const res  = await api('/api/instagram/status');
+  const data = await res.json();
+  const el   = document.getElementById('ig-header');
+  if (data.connected) {
+    el.innerHTML = `
+      <span style="font-size:11px;color:var(--dim);">IG: <strong style="color:var(--accent-dim);">@${data.username}</strong></span>
+      <button class="hdr-btn" id="btn-ig-disconnect">Desconectar IG</button>`;
+    document.getElementById('btn-ig-disconnect').addEventListener('click', disconnectIG);
+  } else {
+    el.innerHTML = `<button class="hdr-btn" onclick="connectIG()">Conectar Instagram</button>`;
+  }
+}
+
+function connectIG() { window.location.href = '/api/instagram/connect'; }
+
+async function disconnectIG() {
+  if (!confirm('¿Desconectar Instagram?')) return;
+  await api('/api/instagram/disconnect', { method: 'DELETE' });
+  loadIgStatus();
+}
+
+async function showIGSection(renderConfig, templateName) {
+  const res  = await api('/api/instagram/status');
+  const data = await res.json();
+  const body = document.getElementById('ig-section-body');
+  document.getElementById('ig-section').style.display = 'block';
+
+  if (!data.connected) {
+    body.innerHTML = `
+      <p style="font-size:12px;color:var(--dim);margin-bottom:10px;">Conecta tu cuenta de Instagram para publicar directamente en Stories.</p>
+      <button class="email-send-btn" style="background:linear-gradient(135deg,#833ab4,#e1306c,#fd1d1d);" onclick="connectIG()">CONECTAR INSTAGRAM</button>`;
+    return;
+  }
+
+  body.innerHTML = `
+    <p style="font-size:12px;color:var(--dim);margin-bottom:10px;">Cuenta: <strong style="color:var(--accent-dim);">@${data.username}</strong></p>
+    <div class="email-tabs" style="margin-bottom:10px;">
+      <button class="email-tab active" id="ig-tab-now" onclick="switchIgTab('now')">Publicar ahora</button>
+      <button class="email-tab" id="ig-tab-sched" onclick="switchIgTab('sched')">Programar</button>
+    </div>
+    <div class="email-panel active" id="ig-panel-now">
+      <div class="form-status" id="ig-status-now"></div>
+      <button class="email-send-btn" id="btn-ig-now"
+        style="background:linear-gradient(135deg,#833ab4,#e1306c,#fd1d1d);"
+        onclick="publishIGNow()">PUBLICAR EN STORIES</button>
+    </div>
+    <div class="email-panel" id="ig-panel-sched">
+      <div class="form-field">
+        <label>Fecha y hora de publicación</label>
+        <input type="datetime-local" id="ig-sched-at">
+      </div>
+      <div class="form-status" id="ig-status-sched"></div>
+      <button class="email-send-btn" id="btn-ig-sched"
+        style="background:linear-gradient(135deg,#833ab4,#e1306c);"
+        onclick="scheduleIGPost()">PROGRAMAR PUBLICACIÓN</button>
+    </div>`;
+
+  loadIGScheduled();
+}
+
+function switchIgTab(tab) {
+  document.getElementById('ig-tab-now').classList.toggle('active', tab === 'now');
+  document.getElementById('ig-tab-sched').classList.toggle('active', tab === 'sched');
+  document.getElementById('ig-panel-now').classList.toggle('active', tab === 'now');
+  document.getElementById('ig-panel-sched').classList.toggle('active', tab === 'sched');
+}
+
+async function publishIGNow() {
+  const btn      = document.getElementById('btn-ig-now');
+  const statusEl = document.getElementById('ig-status-now');
+  btn.disabled = true; statusEl.textContent = 'Publicando...'; statusEl.className = 'form-status';
+  try {
+    const res = await api('/api/instagram/publish', {
+      method: 'POST',
+      body: JSON.stringify({ render_config: currentRenderConfig, template_name: currentTemplateName })
+    });
+    if (!res.ok) { const e = await res.json(); throw new Error(e.error); }
+    const data = await res.json();
+    statusEl.innerHTML = `✓ Publicado · <a href="${data.postUrl}" target="_blank" style="color:var(--accent-dim);">Ver en Instagram</a>`;
+    statusEl.className = 'form-status ok';
+  } catch (err) {
+    statusEl.textContent = '❌ ' + err.message; statusEl.className = 'form-status err';
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+async function scheduleIGPost() {
+  const scheduledAt = document.getElementById('ig-sched-at').value;
+  const statusEl    = document.getElementById('ig-status-sched');
+  const btn         = document.getElementById('btn-ig-sched');
+  if (!scheduledAt) { statusEl.textContent = '⚠ Selecciona fecha y hora'; statusEl.className = 'form-status err'; return; }
+  if (new Date(scheduledAt) <= new Date()) { statusEl.textContent = '⚠ La fecha debe ser futura'; statusEl.className = 'form-status err'; return; }
+  btn.disabled = true; statusEl.textContent = 'Programando...'; statusEl.className = 'form-status';
+  try {
+    const res = await api('/api/instagram/schedule', {
+      method: 'POST',
+      body: JSON.stringify({ render_config: currentRenderConfig, scheduled_at: scheduledAt, template_name: currentTemplateName })
+    });
+    if (!res.ok) { const e = await res.json(); throw new Error(e.error); }
+    statusEl.textContent = '✓ Publicación programada'; statusEl.className = 'form-status ok';
+    document.getElementById('ig-sched-at').value = '';
+    loadIGScheduled();
+  } catch (err) {
+    statusEl.textContent = '❌ ' + err.message; statusEl.className = 'form-status err';
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+async function loadIGScheduled() {
+  const res   = await api('/api/instagram/scheduled');
+  const items = await res.json();
+  const card  = document.getElementById('ig-scheduled-card');
+  const list  = document.getElementById('ig-scheduled-list');
+  if (!items.length) { card.style.display = 'none'; return; }
+  card.style.display = 'block';
+  list.innerHTML = '';
+  for (const item of items) {
+    const dt = new Date(item.scheduled_at).toLocaleString('es-ES', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+    const el = document.createElement('div');
+    el.className = 'scheduled-item';
+    el.innerHTML = `
+      <div class="scheduled-item-info">
+        <strong>${item.template_name || 'Story'}</strong><br>${dt}
+      </div>
+      <button class="scheduled-cancel" title="Cancelar" onclick="cancelIGScheduled(${item.id}, this)">×</button>`;
+    list.appendChild(el);
+  }
+}
+
+async function cancelIGScheduled(id, btn) {
+  btn.disabled = true;
+  await api(`/api/instagram/scheduled/${id}`, { method: 'DELETE' });
+  loadIGScheduled();
+}
+
+// Feedback del callback OAuth
+(function checkOAuthResult() {
+  const p = new URLSearchParams(location.search);
+  if (p.get('ig_connected')) {
+    const user = p.get('ig_username') || '';
+    const toast = document.createElement('div');
+    toast.style.cssText = 'position:fixed;top:70px;right:20px;z-index:999;background:#1a2547;border:1px solid var(--accent-dim);color:var(--accent-dim);padding:10px 16px;border-radius:8px;font-size:13px;font-family:Manrope,sans-serif;box-shadow:0 4px 16px rgba(0,0,0,0.4);';
+    toast.textContent = `✓ Instagram conectado: @${user}`;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 4000);
+    history.replaceState({}, '', '/templates.html');
+  }
+  if (p.get('ig_error')) {
+    const toast = document.createElement('div');
+    toast.style.cssText = 'position:fixed;top:70px;right:20px;z-index:999;background:#1a2547;border:1px solid var(--error);color:var(--error);padding:10px 16px;border-radius:8px;font-size:13px;font-family:Manrope,sans-serif;box-shadow:0 4px 16px rgba(0,0,0,0.4);';
+    toast.textContent = `❌ Error IG: ${p.get('ig_error')}`;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 6000);
+    history.replaceState({}, '', '/templates.html');
+  }
+})();
+
+// ===== EMAIL =====
+let currentRenderConfig = null;
+let currentTemplateName = '';
+
+function switchEmailTab(tab) {
+  document.getElementById('tab-now').classList.toggle('active', tab === 'now');
+  document.getElementById('tab-schedule').classList.toggle('active', tab === 'schedule');
+  document.getElementById('panel-now').classList.toggle('active', tab === 'now');
+  document.getElementById('panel-schedule').classList.toggle('active', tab === 'schedule');
+}
+
+function showEmailSection(renderConfig, templateName) {
+  currentRenderConfig = renderConfig;
+  currentTemplateName = templateName;
+  document.getElementById('email-subject').value = templateName;
+  document.getElementById('email-section').style.display = 'block';
+  loadScheduledEmails();
+}
+
+async function sendEmailNow() {
+  const to = document.getElementById('email-to').value.trim();
+  const subject = document.getElementById('email-subject').value.trim();
+  const statusEl = document.getElementById('email-status-now');
+  const btn = document.getElementById('btn-send-now');
+  if (!to) { statusEl.textContent = '⚠ Escribe un correo destinatario'; statusEl.className = 'form-status err'; return; }
+  btn.disabled = true; statusEl.textContent = 'Enviando...'; statusEl.className = 'form-status';
+  try {
+    const res = await api('/api/send-email', { method: 'POST', body: JSON.stringify({
+      render_config: currentRenderConfig, email_to: to, subject, template_name: currentTemplateName
+    })});
+    if (!res.ok) { const e = await res.json(); throw new Error(e.error); }
+    statusEl.textContent = '✓ Email enviado correctamente'; statusEl.className = 'form-status ok';
+  } catch (err) {
+    statusEl.textContent = '❌ ' + err.message; statusEl.className = 'form-status err';
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+async function scheduleEmail() {
+  const to = document.getElementById('email-to').value.trim();
+  const subject = document.getElementById('email-subject').value.trim();
+  const sendAt = document.getElementById('email-send-at').value;
+  const statusEl = document.getElementById('email-status-schedule');
+  const btn = document.getElementById('btn-schedule');
+  if (!to) { statusEl.textContent = '⚠ Escribe un correo destinatario'; statusEl.className = 'form-status err'; return; }
+  if (!sendAt) { statusEl.textContent = '⚠ Selecciona fecha y hora'; statusEl.className = 'form-status err'; return; }
+  if (new Date(sendAt) <= new Date()) { statusEl.textContent = '⚠ La fecha debe ser futura'; statusEl.className = 'form-status err'; return; }
+  btn.disabled = true; statusEl.textContent = 'Programando...'; statusEl.className = 'form-status';
+  try {
+    const res = await api('/api/schedule-email', { method: 'POST', body: JSON.stringify({
+      render_config: currentRenderConfig, email_to: to, subject, send_at: sendAt, template_name: currentTemplateName
+    })});
+    if (!res.ok) { const e = await res.json(); throw new Error(e.error); }
+    statusEl.textContent = '✓ Envío programado'; statusEl.className = 'form-status ok';
+    document.getElementById('email-send-at').value = '';
+    loadScheduledEmails();
+  } catch (err) {
+    statusEl.textContent = '❌ ' + err.message; statusEl.className = 'form-status err';
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+async function loadScheduledEmails() {
+  const res = await api('/api/scheduled-emails');
+  const items = await res.json();
+  const card = document.getElementById('scheduled-card');
+  const list = document.getElementById('scheduled-list');
+  if (!items.length) { card.style.display = 'none'; return; }
+  card.style.display = 'block';
+  list.innerHTML = '';
+  for (const item of items) {
+    const dt = new Date(item.send_at).toLocaleString('es-ES', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+    const el = document.createElement('div');
+    el.className = 'scheduled-item';
+    el.innerHTML = `
+      <div class="scheduled-item-info">
+        <strong>${item.template_name || 'Menú'}</strong><br>
+        Para: ${item.email_to} · ${dt}
+      </div>
+      <button class="scheduled-cancel" title="Cancelar" onclick="cancelScheduled(${item.id}, this)">×</button>`;
+    list.appendChild(el);
+  }
+}
+
+async function cancelScheduled(id, btn) {
+  btn.disabled = true;
+  await api(`/api/scheduled-emails/${id}`, { method: 'DELETE' });
+  loadScheduledEmails();
 }
 
 // ===== UTILS =====
@@ -450,6 +800,7 @@ function toB64(file) {
 }
 
 loadTemplates();
+loadIgStatus();
 </script>
 </body>
 </html>
