@@ -189,7 +189,8 @@ async function renderMenu(data) {
   }
 
   console.log("🔥 RENDER EN MEMORIA");
-  return canvas.toBuffer("image/png");
+  const outFmt = data.output_format === "jpg" || data.output_format === "jpeg" ? "image/jpeg" : "image/png";
+  return canvas.toBuffer(outFmt);
 }
 
 module.exports = renderMenu;

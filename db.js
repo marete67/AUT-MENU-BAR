@@ -74,6 +74,25 @@ async function initDB() {
       )
     `);
 
+    await conn.execute(`
+      CREATE TABLE IF NOT EXISTS public_links (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id INT NOT NULL,
+        name VARCHAR(255) NOT NULL DEFAULT 'Mi Menú',
+        slug VARCHAR(32) NOT NULL UNIQUE,
+        custom_domain VARCHAR(255) DEFAULT NULL,
+        page_count INT DEFAULT 0,
+        last_published_at DATETIME DEFAULT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id)
+      )
+    `);
+
+    await conn.execute(`
+      ALTER TABLE public_links
+        ADD COLUMN IF NOT EXISTS custom_domain VARCHAR(255) DEFAULT NULL
+    `);
+
     // Usuario por defecto hardcodeado
     await conn.execute(
       `INSERT IGNORE INTO users (username, password) VALUES (?, ?)`,

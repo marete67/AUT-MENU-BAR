@@ -2,6 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Menu Bar · Editor</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
@@ -44,7 +45,7 @@ main { display:flex; flex:1; overflow:hidden; }
 .fmt-tab { padding:5px 14px; border-radius:var(--r); border:1px solid rgba(255,255,255,0.1); background:transparent; color:var(--dim); cursor:pointer; font-size:11px; font-family:'Manrope',sans-serif; font-weight:600; letter-spacing:0.05em; transition:all 0.15s; }
 .fmt-tab.active { background:var(--s1); color:var(--text); border-color:rgba(158,255,200,0.25); }
 .fmt-tab:hover:not(.active) { color:var(--text); border-color:rgba(255,255,255,0.2); }
-#canvas-container { position:relative; width:405px; height:720px; background:#fff; overflow:hidden; border-radius:var(--r); box-shadow:0 0 0 1px rgba(158,255,200,0.08), 0 20px 60px rgba(0,0,0,0.6); }
+#canvas-container { position:relative; width:405px; height:720px; background:#fff; overflow:hidden; border-radius:var(--r); box-shadow:0 0 0 1px rgba(158,255,200,0.08), 0 20px 60px rgba(0,0,0,0.6); touch-action:none; }
 #canvas-bg { position:absolute; inset:0; background-size:cover; background-position:center; pointer-events:none; }
 #guides { position:absolute; inset:0; pointer-events:none; overflow:hidden; }
 .guide { position:absolute; background:#f43f5e; opacity:0.85; }
@@ -144,6 +145,81 @@ input[type="checkbox"] { accent-color:var(--accent-dim); width:13px; height:13px
 #prev-status.err { color:var(--error); }
 #prev-img { width:100%; border-radius:var(--r); display:none; margin-top:4px; }
 #prev-dl { display:none; text-align:center; font-size:11px; color:var(--accent-dim); text-decoration:none; padding:4px; font-family:'Manrope',sans-serif; }
+
+/* ===== BOTTOM NAV (siempre en DOM, visible solo mobile) ===== */
+#bottom-nav {
+  display:none; position:fixed; bottom:0; left:0; right:0; height:56px;
+  background:var(--s0); border-top:1px solid rgba(255,255,255,0.08);
+  z-index:101; align-items:stretch;
+}
+.bn-tab {
+  flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:2px; background:transparent; border:none; color:var(--dim); cursor:pointer;
+  font-family:'Inter',sans-serif; padding:0; position:relative; transition:color 0.15s;
+  -webkit-tap-highlight-color:transparent;
+}
+.bn-tab.active { color:var(--accent-dim); }
+.bn-tab.active::after {
+  content:''; position:absolute; top:0; left:20%; right:20%;
+  height:2px; background:var(--accent-dim); border-radius:0 0 2px 2px;
+}
+.bn-icon { font-size:20px; line-height:1; }
+.bn-label { font-size:10px; font-weight:600; font-family:'Manrope',sans-serif; letter-spacing:0.04em; }
+
+/* ===== MOBILE LAYOUT ===== */
+@media (max-width: 768px) {
+  body { overflow:hidden; height:100dvh; }
+
+  /* Header: 2 filas */
+  header {
+    height:auto; flex-wrap:wrap; padding:8px 12px; gap:6px; align-items:center;
+  }
+  .logo { font-size:12px; }
+  .tpl-name-input { order:10; flex:1 1 100%; max-width:none; }
+  .hdr-right { gap:4px; }
+  .save-status { display:none; }
+  .hdr-btn { padding:5px 10px; font-size:11px; }
+
+  /* Main: canvas ocupa todo el espacio */
+  main { overflow:hidden; flex:1; }
+  #canvas-area { padding:10px 8px; align-items:flex-start; justify-content:center; overflow:auto; }
+
+  /* Sidebar → bottom sheet */
+  #sidebar {
+    position:fixed; bottom:56px; left:0; right:0;
+    width:100% !important; flex-shrink:0;
+    max-height:58vh;
+    background:var(--s0);
+    border-top:1px solid rgba(255,255,255,0.1);
+    border-radius:16px 16px 0 0;
+    box-shadow:0 -4px 32px rgba(0,0,0,0.55);
+    transform:translateY(100%);
+    transition:transform 0.28s cubic-bezier(0.4,0,0.2,1);
+    z-index:100; overflow-y:auto; -webkit-overflow-scrolling:touch;
+  }
+  #sidebar.sheet-open { transform:translateY(0); }
+
+  /* Barra de arrastre visual */
+  #sidebar::before {
+    content:''; display:block; width:36px; height:4px;
+    background:rgba(255,255,255,0.18); border-radius:2px;
+    margin:10px auto 4px; flex-shrink:0;
+  }
+
+  /* Cada sección oculta; solo muestra la activa */
+  #sidebar .sec { display:none; }
+  #sidebar .sec.section-active { display:flex; }
+
+  /* Resize handle más ancho para toque */
+  .text-resize { width:22px; }
+  .text-resize::after { width:3px; height:14px; }
+
+  /* Bottom nav visible */
+  #bottom-nav { display:flex; }
+
+  /* Espacio extra en canvas para que el contenido no quede bajo el nav */
+  #canvas-area { padding-bottom:68px; }
+}
 </style>
 </head>
 <body>
@@ -174,7 +250,7 @@ input[type="checkbox"] { accent-color:var(--accent-dim); width:13px; height:13px
 
   <div id="sidebar">
 
-    <div class="sec">
+    <div class="sec" data-section="fondo">
       <div class="sec-title">Fondo</div>
       <div class="field">
         <input type="file" id="in-fondo" accept="image/*">
@@ -186,7 +262,7 @@ input[type="checkbox"] { accent-color:var(--accent-dim); width:13px; height:13px
       </div>
     </div>
 
-    <div class="sec">
+    <div class="sec" data-section="bloques">
       <div class="sec-title">Bloques de texto</div>
       <div class="block-list" id="block-list"></div>
       <div class="add-btns">
@@ -195,7 +271,7 @@ input[type="checkbox"] { accent-color:var(--accent-dim); width:13px; height:13px
       </div>
     </div>
 
-    <div class="sec" id="sec-props">
+    <div class="sec" id="sec-props" data-section="props">
       <div class="sec-title">Propiedades</div>
       <div id="props-panel">
         <div class="props-top">
@@ -251,7 +327,7 @@ input[type="checkbox"] { accent-color:var(--accent-dim); width:13px; height:13px
       </div>
     </div>
 
-<div class="sec">
+<div class="sec" data-section="preview">
       <div class="sec-title">Vista previa</div>
       <div id="prev-status"></div>
       <button id="btn-preview">Generar vista previa</button>
@@ -261,6 +337,25 @@ input[type="checkbox"] { accent-color:var(--accent-dim); width:13px; height:13px
 
   </div>
 </main>
+
+<div id="bottom-nav">
+  <button class="bn-tab" data-tab="fondo">
+    <span class="bn-icon">🖼</span>
+    <span class="bn-label">Fondo</span>
+  </button>
+  <button class="bn-tab" data-tab="bloques">
+    <span class="bn-icon">☰</span>
+    <span class="bn-label">Bloques</span>
+  </button>
+  <button class="bn-tab" data-tab="props">
+    <span class="bn-icon">✏️</span>
+    <span class="bn-label">Props</span>
+  </button>
+  <button class="bn-tab" data-tab="preview">
+    <span class="bn-icon">👁</span>
+    <span class="bn-label">Preview</span>
+  </button>
+</div>
 
 <script>
 // ===== AUTH =====
@@ -276,7 +371,10 @@ function api(url, opts = {}) {
 }
 
 // ===== STATE =====
-const DISPLAY_W = 405;
+let DISPLAY_W = 405;
+function getDisplayW() {
+  return window.innerWidth <= 768 ? Math.max(280, window.innerWidth - 16) : 405;
+}
 const FORMATS = { story:{w:1080,h:1920}, folio:{w:2480,h:3508} };
 let REAL_W = 1080, REAL_H = 1920, SCALE = DISPLAY_W / REAL_W;
 
@@ -301,6 +399,7 @@ const editId = urlParams.get('id');
 
 // ===== APPLY FORMAT =====
 function applyFormat(fmt) {
+  DISPLAY_W = getDisplayW();
   state.activeFormat = fmt;
   const f = FORMATS[fmt] ?? FORMATS.story;
   REAL_W = f.w; REAL_H = f.h;
@@ -454,7 +553,9 @@ function renderProps() {
   document.getElementById('p-color-pick').value = b.text_color || BLOCK_DEFAULTS.text_color;
 }
 
-function selectBlock(id) { state.selectedId = id; renderBlocks(); renderList(); renderProps(); }
+function selectBlock(id) {
+  state.selectedId = id; renderBlocks(); renderList(); renderProps();
+}
 function delBlock(id) { const cfg=activeConfig(); cfg.blocks=cfg.blocks.filter(b=>b.id!==id); if(state.selectedId===id) state.selectedId=null; renderBlocks(); renderList(); renderProps(); }
 function getSelected() { return activeConfig().blocks.find(b => b.id===state.selectedId)||null; }
 
@@ -487,19 +588,6 @@ document.querySelectorAll('.ia-btn').forEach(btn => btn.addEventListener('click'
 
 // ===== DRAG =====
 let drag = null;
-container.addEventListener('mousedown', e => {
-  if (e.target.classList.contains('text-resize')) {
-    const blockEl = e.target.closest('.el-block'); if (!blockEl) return;
-    const id=blockEl.dataset.id; const b=activeConfig().blocks.find(x=>x.id===id);
-    selectBlock(id); drag={type:'text-resize',id,sx:e.clientX,sw:b.w}; e.preventDefault(); return;
-  }
-  const blockEl = e.target.closest('.el-block');
-  if (blockEl) {
-    const id=blockEl.dataset.id; const b=activeConfig().blocks.find(x=>x.id===id);
-    selectBlock(id); drag={type:'block-move',id,sx:e.clientX,sy:e.clientY,ox:b.x,oy:b.y}; e.preventDefault(); return;
-  }
-  state.selectedId=null; renderBlocks(); renderList(); renderProps();
-});
 // ===== GUIDES =====
 const guidesEl = document.getElementById('guides');
 const SNAP_THRESHOLD = 6; // display pixels
@@ -577,21 +665,60 @@ function snapAndGuide(b) {
   }
 }
 
-document.addEventListener('mousemove', e => {
+// ===== POINTER EVENTS (mouse + touch unificado) =====
+container.addEventListener('pointerdown', e => {
+  if (e.target.classList.contains('text-resize')) {
+    const blockEl = e.target.closest('.el-block'); if (!blockEl) return;
+    const id = blockEl.dataset.id; const b = activeConfig().blocks.find(x => x.id === id);
+    selectBlock(id);
+    drag = { type:'text-resize', id, sx:e.clientX, sw:b.w };
+    container.setPointerCapture(e.pointerId);
+    e.preventDefault(); return;
+  }
+  const blockEl = e.target.closest('.el-block');
+  if (blockEl) {
+    const id = blockEl.dataset.id; const b = activeConfig().blocks.find(x => x.id === id);
+    state.selectedId = id;
+    document.querySelectorAll('.el-block').forEach(el =>
+      el.classList.toggle('selected', el.dataset.id === id)
+    );
+    drag = { type:'block-move', id, sx:e.clientX, sy:e.clientY, ox:b.x, oy:b.y, moved:false };
+    container.setPointerCapture(e.pointerId);
+    e.preventDefault(); return;
+  }
+  state.selectedId = null; renderBlocks(); renderList(); renderProps();
+});
+
+container.addEventListener('pointermove', e => {
   if (!drag) return;
-  const dx=(e.clientX-drag.sx)/SCALE; const dy=(e.clientY-drag.sy)/SCALE;
-  if (drag.type==='block-move') {
-    const b=activeConfig().blocks.find(x=>x.id===drag.id); if(!b) return;
-    b.x=clamp(drag.ox+dx,0,REAL_W-b.w); b.y=clamp(drag.oy+dy,0,REAL_H);
+  const dx = (e.clientX - drag.sx) / SCALE;
+  const dy = (e.clientY - drag.sy) / SCALE;
+  if (!drag.moved && (Math.abs(e.clientX - drag.sx) > 3 || Math.abs(e.clientY - drag.sy) > 3)) {
+    drag.moved = true;
+  }
+  if (drag.type === 'block-move') {
+    const b = activeConfig().blocks.find(x => x.id === drag.id); if (!b) return;
+    b.x = clamp(drag.ox + dx, 0, REAL_W - b.w); b.y = clamp(drag.oy + dy, 0, REAL_H);
     snapAndGuide(b);
-  } else if (drag.type==='text-resize') {
-    const b=activeConfig().blocks.find(x=>x.id===drag.id); if(!b) return;
-    const nw=Math.max(40,drag.sw+dx); if(b.x+nw>REAL_W) b.x=REAL_W-nw; b.w=nw;
+  } else if (drag.type === 'text-resize') {
+    const b = activeConfig().blocks.find(x => x.id === drag.id); if (!b) return;
+    const nw = Math.max(40, drag.sw + dx); if (b.x + nw > REAL_W) b.x = REAL_W - nw; b.w = nw;
     clearGuides();
   }
   renderBlocks();
+  e.preventDefault();
 });
-document.addEventListener('mouseup', () => { drag=null; clearGuides(); });
+
+container.addEventListener('pointerup', e => {
+  if (drag) {
+    const wasTap = !drag.moved && drag.type === 'block-move';
+    renderBlocks(); renderList(); renderProps();
+    if (wasTap && isMobile()) openMobileSection('props');
+  }
+  drag = null; clearGuides();
+});
+
+container.addEventListener('pointercancel', () => { drag = null; clearGuides(); });
 
 // ===== FONDO =====
 document.getElementById('in-fondo').addEventListener('change', async e => {
@@ -681,6 +808,41 @@ document.getElementById('btn-preview').addEventListener('click', async () => {
   } catch(err) { statusEl.textContent='❌ '+err.message; statusEl.className='err'; }
   finally { btn.disabled=false; }
 });
+
+
+// ===== MOBILE BOTTOM SHEET =====
+function isMobile() { return window.innerWidth <= 768; }
+
+function openMobileSection(name) {
+  const sidebar = document.getElementById('sidebar');
+  document.querySelectorAll('#sidebar .sec').forEach(s => s.classList.remove('section-active'));
+  const target = document.querySelector(`#sidebar .sec[data-section="${name}"]`);
+  if (target) target.classList.add('section-active');
+  document.querySelectorAll('.bn-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+  sidebar.classList.add('sheet-open');
+  _mobileActiveTab = name;
+}
+
+let _mobileActiveTab = null;
+
+document.querySelectorAll('.bn-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    if (!isMobile()) return;
+    const name = tab.dataset.tab;
+    const sidebar = document.getElementById('sidebar');
+    if (_mobileActiveTab === name && sidebar.classList.contains('sheet-open')) {
+      sidebar.classList.remove('sheet-open');
+      tab.classList.remove('active');
+      _mobileActiveTab = null;
+    } else {
+      openMobileSection(name);
+    }
+  });
+});
+
+
+// Recalcular canvas al rotar/redimensionar
+window.addEventListener('resize', () => applyFormat(state.activeFormat));
 
 // ===== UTILS =====
 function px(v){return Math.round(v)+'px';}

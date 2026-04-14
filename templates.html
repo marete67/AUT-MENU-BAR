@@ -2,7 +2,8 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Menu Bar · Plantillas</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Menu Bar</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -12,269 +13,587 @@ body { font-family:'Inter',sans-serif; background:var(--bg); color:var(--text); 
 
 /* ===== HEADER ===== */
 header {
-  position:sticky; top:0; z-index:100;
-  height:56px; padding:0 24px; background:var(--s0);
+  position:sticky; top:0; z-index:200;
+  height:56px; padding:0 20px; background:var(--s0);
   border-bottom:1px solid rgba(255,255,255,0.05);
-  display:flex; align-items:center; gap:16px;
+  display:flex; align-items:center; gap:10px;
 }
-.logo { font-family:'Manrope',sans-serif; font-size:15px; font-weight:700; }
+.logo { font-family:'Manrope',sans-serif; font-size:15px; font-weight:700; flex:1; }
 .logo span { color:var(--accent); }
-.hdr-right { margin-left:auto; display:flex; align-items:center; gap:12px; }
-.hdr-user { font-size:12px; color:var(--dim); }
-.hdr-btn {
-  padding:6px 14px; border-radius:var(--r); border:1px solid rgba(255,255,255,0.1);
+.hdr-icon-btn {
+  width:36px; height:36px; border-radius:50%; border:1px solid rgba(255,255,255,0.08);
   background:transparent; color:var(--dim); cursor:pointer;
-  font-size:12px; font-family:'Manrope',sans-serif; font-weight:600;
-  transition:all 0.15s; letter-spacing:0.05em;
+  display:flex; align-items:center; justify-content:center;
+  font-size:17px; transition:all 0.15s; flex-shrink:0;
 }
-.hdr-btn:hover { color:var(--text); border-color:rgba(255,255,255,0.25); }
-.hdr-btn.primary {
-  background:linear-gradient(135deg,var(--accent-dim),var(--accent));
-  color:#060d24; border-color:transparent; font-weight:700;
-  box-shadow:0 0 16px rgba(0,236,154,0.2);
+.hdr-icon-btn:hover { background:var(--s2); color:var(--text); }
+
+/* ===== TAB BAR ===== */
+.tab-bar {
+  display:flex; background:var(--s0); border-bottom:1px solid rgba(255,255,255,0.05);
+  position:sticky; top:56px; z-index:100;
 }
-.hdr-btn.primary:hover { opacity:0.9; box-shadow:0 0 24px rgba(0,236,154,0.35); }
+.tab-btn {
+  flex:1; padding:13px 0; background:none; border:none; cursor:pointer;
+  font-size:13px; font-family:'Manrope',sans-serif; font-weight:600;
+  color:var(--dim); letter-spacing:0.06em; text-transform:uppercase;
+  border-bottom:2px solid transparent; transition:all 0.15s;
+  -webkit-tap-highlight-color:transparent;
+}
+.tab-btn.active { color:var(--accent); border-bottom-color:var(--accent); }
 
-/* ===== LIST VIEW ===== */
-#view-list { padding:32px 24px; max-width:960px; margin:0 auto; }
-.page-title { font-family:'Manrope',sans-serif; font-size:22px; font-weight:700; margin-bottom:24px; }
-.page-title span { color:var(--accent); }
-
-.grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:16px; }
-
-.tmpl-card {
+/* ===== SHARED CARD/FIELD COMPONENTS ===== */
+.card {
   background:var(--s0); border-radius:10px; padding:20px;
-  border:1px solid rgba(255,255,255,0.05);
-  display:flex; flex-direction:column; gap:12px;
-  transition:border-color 0.15s, transform 0.15s;
+  border:1px solid rgba(255,255,255,0.05); margin-bottom:12px;
 }
-.tmpl-card:hover { border-color:rgba(158,255,200,0.15); transform:translateY(-1px); }
-
-.tmpl-card-top { display:flex; align-items:flex-start; gap:8px; }
-.tmpl-name { font-family:'Manrope',sans-serif; font-size:15px; font-weight:600; flex:1; }
-.menu-wrap { position:relative; flex-shrink:0; }
-.menu-btn {
-  width:28px; height:28px; border-radius:var(--r); border:none;
-  background:transparent; color:var(--dim); cursor:pointer;
-  font-size:16px; font-weight:700; display:flex; align-items:center; justify-content:center;
-  transition:background 0.1s; letter-spacing:0.05em;
+.card-label {
+  font-size:9px; font-weight:700; text-transform:uppercase;
+  letter-spacing:0.12em; color:var(--accent-dim); margin-bottom:12px;
 }
-.menu-btn:hover { background:var(--s2); color:var(--text); }
-.dropdown {
-  display:none; position:absolute; right:0; top:32px; z-index:50;
-  background:var(--s1); border-radius:var(--r);
-  border:1px solid rgba(255,255,255,0.08);
-  box-shadow:0 8px 24px rgba(0,0,0,0.4);
-  min-width:140px; overflow:hidden;
-}
-.dropdown.open { display:block; }
-.dropdown button {
-  width:100%; padding:10px 14px; background:transparent; border:none;
-  color:var(--text); text-align:left; cursor:pointer; font-size:13px;
-  font-family:'Inter',sans-serif; transition:background 0.1s;
-  display:block;
-}
-.dropdown button:hover { background:var(--s2); }
-.dropdown button.del { color:var(--error); }
-
-.tmpl-info { font-size:12px; color:var(--dim); }
-
-.btn-generar {
-  padding:10px; border-radius:var(--r); border:none; cursor:pointer;
-  background:linear-gradient(135deg,var(--accent-dim),var(--accent));
-  color:#060d24; font-size:13px; font-weight:700;
-  font-family:'Manrope',sans-serif; letter-spacing:0.05em;
-  box-shadow:0 0 16px rgba(0,236,154,0.15);
-  transition:opacity 0.15s, box-shadow 0.15s;
-}
-.btn-generar:hover { opacity:0.9; box-shadow:0 0 24px rgba(0,236,154,0.3); }
-
-.empty {
-  grid-column:1/-1; text-align:center; padding:64px 0;
-  color:var(--dim); font-size:14px; line-height:2;
-}
-.empty strong { display:block; font-family:'Manrope',sans-serif; font-size:18px; color:var(--text); margin-bottom:8px; }
-
-/* ===== FORM VIEW ===== */
-#view-form {
-  display:none; max-width:560px; margin:0 auto; padding:32px 24px;
-}
-.back-btn {
-  display:inline-flex; align-items:center; gap:6px;
-  font-size:13px; color:var(--dim); cursor:pointer; background:none; border:none;
-  font-family:'Inter',sans-serif; padding:0; margin-bottom:24px;
-  transition:color 0.15s;
-}
-.back-btn:hover { color:var(--text); }
-
-.form-title { font-family:'Manrope',sans-serif; font-size:22px; font-weight:700; margin-bottom:6px; }
-.form-subtitle { font-size:13px; color:var(--dim); margin-bottom:28px; }
-
-.form-card { background:var(--s0); border-radius:10px; padding:20px; border:1px solid rgba(255,255,255,0.05); margin-bottom:16px; display:flex; flex-direction:column; gap:12px; }
-.form-card-title { font-family:'Manrope',sans-serif; font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:0.12em; color:var(--accent-dim); }
-
-.form-field { display:flex; flex-direction:column; gap:4px; }
-.form-field label { font-size:12px; color:var(--dim); }
-.form-field input, .form-field textarea {
+.field { display:flex; flex-direction:column; gap:4px; margin-bottom:10px; }
+.field:last-child { margin-bottom:0; }
+.field label { font-size:11px; color:var(--dim); letter-spacing:0.04em; }
+.field input, .field textarea, .field select {
   background:var(--s1); border:none; border-bottom:2px solid transparent;
   color:var(--text); padding:9px 10px; border-radius:var(--r) var(--r) 0 0;
   font-size:13px; font-family:'Inter',sans-serif; outline:none; width:100%;
   transition:border-color 0.15s;
 }
-.form-field input:focus, .form-field textarea:focus { border-bottom-color:var(--accent-dim); }
-.form-field textarea { min-height:80px; resize:vertical; }
+.field input:focus, .field textarea:focus, .field select:focus { border-bottom-color:var(--accent-dim); }
+.field textarea { min-height:72px; resize:vertical; }
 input[type="file"] {
   font-size:12px; color:var(--dim); background:var(--s1);
-  border:1.5px dashed rgba(158,255,200,0.2); padding:9px 10px;
+  border:1.5px dashed rgba(158,255,200,0.2); padding:8px 10px;
   border-radius:var(--r); width:100%; cursor:pointer; font-family:'Inter',sans-serif;
 }
-
-.render-btn {
-  width:100%; padding:13px; border-radius:var(--r); border:none; cursor:pointer;
-  background:linear-gradient(135deg,var(--accent-dim),var(--accent));
-  color:#060d24; font-size:14px; font-weight:700; font-family:'Manrope',sans-serif;
-  letter-spacing:0.05em; box-shadow:0 0 20px rgba(0,236,154,0.2);
-  transition:opacity 0.15s, box-shadow 0.15s;
-}
-.render-btn:hover:not(:disabled) { opacity:0.9; box-shadow:0 0 32px rgba(0,236,154,0.35); }
-.render-btn:disabled { background:var(--s2); color:var(--dim); box-shadow:none; cursor:not-allowed; }
-
 .form-status { font-size:12px; color:var(--dim); min-height:16px; }
-.form-status.ok { color:var(--accent-dim); }
+.form-status.ok  { color:var(--accent-dim); }
 .form-status.err { color:var(--error); }
 
-#form-result-img { width:100%; border-radius:var(--r); display:none; margin-top:8px; }
-#form-dl { display:none; text-align:center; font-size:12px; color:var(--accent-dim); text-decoration:none; padding:8px; font-family:'Manrope',sans-serif; }
+/* Buttons */
+.btn {
+  padding:10px 18px; border-radius:var(--r); border:none; cursor:pointer;
+  font-size:13px; font-weight:700; font-family:'Manrope',sans-serif;
+  letter-spacing:0.05em; transition:opacity 0.15s, box-shadow 0.15s;
+  display:inline-flex; align-items:center; gap:6px; white-space:nowrap;
+}
+.btn:disabled { opacity:0.4; cursor:not-allowed; }
+.btn.green { background:linear-gradient(135deg,var(--accent-dim),var(--accent)); color:#060d24; box-shadow:0 0 12px rgba(0,236,154,0.15); }
+.btn.green:hover:not(:disabled) { opacity:0.9; }
+.btn.ghost { background:var(--s2); color:var(--text); border:1px solid rgba(255,255,255,0.08); }
+.btn.ghost:hover:not(:disabled) { background:var(--s1); }
+.btn.blue  { background:linear-gradient(135deg,#3b6fd4,#5b8ff9); color:#fff; }
+.btn.blue:hover:not(:disabled) { opacity:0.85; }
+.btn.ig    { background:linear-gradient(135deg,#833ab4,#e1306c,#fd1d1d); color:#fff; }
+.btn.ig:hover:not(:disabled) { opacity:0.85; }
+.btn.full  { width:100%; justify-content:center; }
+.btn.sm    { padding:7px 12px; font-size:12px; }
+.btn-row   { display:flex; gap:8px; flex-wrap:wrap; }
 
-/* ===== EMAIL SECTION ===== */
-#email-section { display:none; }
-.email-tabs { display:flex; gap:8px; margin-bottom:4px; }
-.email-tab {
-  flex:1; padding:9px 8px; border-radius:var(--r); border:1px solid rgba(255,255,255,0.15);
-  background:transparent; color:var(--dim); cursor:pointer;
-  font-size:12px; font-family:'Manrope',sans-serif; font-weight:600;
-  letter-spacing:0.04em; transition:all 0.15s;
+/* Dashed add button */
+.btn-dashed {
+  display:flex; align-items:center; justify-content:center; gap:8px;
+  padding:14px; border-radius:10px; border:1.5px dashed rgba(158,255,200,0.2);
+  background:transparent; color:var(--dim); cursor:pointer; font-size:13px;
+  font-family:'Manrope',sans-serif; font-weight:600; transition:all 0.15s; width:100%;
 }
-.email-tab.active {
-  background:linear-gradient(135deg,var(--accent-dim),var(--accent));
-  color:#060d24; border-color:transparent;
+.btn-dashed:hover { border-color:rgba(158,255,200,0.5); color:var(--accent); background:rgba(158,255,200,0.04); }
+.btn-dashed:disabled { opacity:0.3; cursor:not-allowed; }
+
+/* Tabs inside panels */
+.ptabs { display:flex; gap:6px; margin-bottom:14px; }
+.ptab {
+  flex:1; padding:8px 6px; border-radius:var(--r);
+  border:1px solid rgba(255,255,255,0.12); background:transparent; color:var(--dim);
+  cursor:pointer; font-size:12px; font-family:'Manrope',sans-serif; font-weight:600; transition:all 0.15s;
 }
-.email-panel { display:none; flex-direction:column; gap:12px; }
-.email-panel.active { display:flex; }
-.email-send-btn {
-  padding:10px; border-radius:var(--r); border:none; cursor:pointer;
-  background:linear-gradient(135deg,#3b6fd4,#5b8ff9);
-  color:#fff; font-size:13px; font-weight:700;
-  font-family:'Manrope',sans-serif; letter-spacing:0.05em;
-  transition:opacity 0.15s;
-}
-.email-send-btn:hover:not(:disabled) { opacity:0.85; }
-.email-send-btn:disabled { background:var(--s2); color:var(--dim); cursor:not-allowed; }
-.scheduled-list { display:flex; flex-direction:column; gap:6px; }
-.scheduled-item {
+.ptab.active { background:linear-gradient(135deg,var(--accent-dim),var(--accent)); color:#060d24; border-color:transparent; }
+.ppanel { display:none; flex-direction:column; gap:10px; }
+.ppanel.active { display:flex; }
+
+/* Scheduled list */
+.sched-list { display:flex; flex-direction:column; gap:6px; margin-top:8px; }
+.sched-item {
   display:flex; align-items:center; justify-content:space-between;
-  background:var(--s2); border-radius:var(--r); padding:8px 10px;
-  font-size:12px; gap:8px;
+  background:var(--s2); border-radius:var(--r); padding:8px 10px; font-size:12px; gap:8px;
 }
-.scheduled-item-info { flex:1; color:var(--dim); line-height:1.5; }
-.scheduled-item-info strong { color:var(--text); }
-.scheduled-cancel {
-  background:none; border:none; color:var(--error); cursor:pointer;
-  font-size:18px; line-height:1; padding:0 4px;
+.sched-item-info { flex:1; color:var(--dim); line-height:1.5; }
+.sched-item-info strong { color:var(--text); }
+.sched-cancel { background:none; border:none; color:var(--error); cursor:pointer; font-size:18px; line-height:1; padding:0 4px; }
+
+/* Icon btn small */
+.icon-btn {
+  width:32px; height:32px; border-radius:var(--r); border:1px solid rgba(255,255,255,0.08);
+  background:transparent; color:var(--dim); cursor:pointer;
+  display:flex; align-items:center; justify-content:center; font-size:14px; transition:all 0.1s;
+}
+.icon-btn:hover { background:var(--s2); color:var(--text); }
+.icon-btn.del:hover { background:rgba(215,56,59,0.15); color:var(--error); }
+
+/* ===== PLANTILLAS TAB ===== */
+#view-plantillas { padding:24px 24px 96px; max-width:960px; margin:0 auto; }
+.page-title { font-family:'Manrope',sans-serif; font-size:22px; font-weight:700; margin-bottom:24px; }
+.page-title span { color:var(--accent); }
+.grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:16px; }
+.tmpl-card {
+  background:var(--s0); border-radius:10px; padding:20px;
+  border:1px solid rgba(255,255,255,0.05);
+  display:flex; flex-direction:column; gap:12px; transition:border-color 0.15s;
+}
+.tmpl-card:hover { border-color:rgba(158,255,200,0.12); }
+.tmpl-card-top { display:flex; align-items:flex-start; gap:8px; }
+.tmpl-name { font-family:'Manrope',sans-serif; font-size:15px; font-weight:600; flex:1; }
+.tmpl-info { font-size:12px; color:var(--dim); }
+.menu-wrap { position:relative; flex-shrink:0; }
+.menu-btn {
+  width:28px; height:28px; border-radius:var(--r); border:none;
+  background:transparent; color:var(--dim); cursor:pointer; font-size:16px;
+  display:flex; align-items:center; justify-content:center; transition:background 0.1s;
+}
+.menu-btn:hover { background:var(--s2); color:var(--text); }
+.dropdown {
+  display:none; position:absolute; right:0; top:32px; z-index:50;
+  background:var(--s1); border-radius:var(--r);
+  border:1px solid rgba(255,255,255,0.08); box-shadow:0 8px 24px rgba(0,0,0,0.4);
+  min-width:140px; overflow:hidden;
+}
+.dropdown.open { display:block; }
+.dropdown button {
+  width:100%; padding:10px 14px; background:transparent; border:none; color:var(--text);
+  text-align:left; cursor:pointer; font-size:13px; font-family:'Inter',sans-serif;
+  transition:background 0.1s; display:block;
+}
+.dropdown button:hover { background:var(--s2); }
+.dropdown button.del { color:var(--error); }
+.empty { grid-column:1/-1; text-align:center; padding:64px 0; color:var(--dim); font-size:14px; line-height:2; }
+.empty strong { display:block; font-family:'Manrope',sans-serif; font-size:18px; color:var(--text); margin-bottom:8px; }
+
+/* ===== FAB ===== */
+.fab {
+  position:fixed; bottom:24px; right:20px; z-index:99;
+  width:52px; height:52px; border-radius:50%; border:none; cursor:pointer;
+  background:linear-gradient(135deg,var(--accent-dim),var(--accent));
+  color:#060d24; font-size:26px; line-height:1;
+  box-shadow:0 4px 20px rgba(0,236,154,0.35);
+  display:none; align-items:center; justify-content:center;
+  transition:transform 0.15s; -webkit-tap-highlight-color:transparent;
+}
+.fab:hover { transform:scale(1.06); }
+
+/* ===== GENERAR TAB ===== */
+#view-generar { display:none; padding-bottom:100px; }
+
+.step-bar {
+  display:flex; align-items:center; padding:14px 24px;
+  border-bottom:1px solid rgba(255,255,255,0.05); background:var(--bg);
+}
+.step-item { display:flex; align-items:center; gap:8px; }
+.step-num {
+  width:24px; height:24px; border-radius:50%;
+  background:var(--s2); color:var(--dim); font-size:12px; font-weight:700;
+  font-family:'Manrope',sans-serif;
+  display:flex; align-items:center; justify-content:center; flex-shrink:0; transition:all 0.2s;
+}
+.step-item.active .step-num { background:var(--accent); color:#060d24; }
+.step-label { font-size:13px; font-family:'Manrope',sans-serif; font-weight:600; color:var(--dim); transition:color 0.2s; }
+.step-item.active .step-label { color:var(--text); }
+.step-sep { flex:1; height:1px; background:rgba(255,255,255,0.08); margin:0 14px; }
+
+/* Step 1 */
+#gen-step1 { padding:20px 24px 0; max-width:720px; margin:0 auto; }
+.gen-empty { text-align:center; padding:80px 0; color:var(--dim); }
+.gen-empty strong { display:block; font-family:'Manrope',sans-serif; font-size:18px; color:var(--text); margin-bottom:10px; }
+.gen-empty p { font-size:14px; line-height:1.7; margin-bottom:24px; }
+.gen-pages { display:flex; flex-direction:column; gap:14px; }
+.gen-page-card { background:var(--s0); border-radius:12px; padding:20px; border:1px solid rgba(255,255,255,0.06); }
+.gen-page-header { display:flex; align-items:center; gap:10px; margin-bottom:14px; }
+.gen-page-num {
+  width:26px; height:26px; border-radius:50%; background:var(--accent); color:#060d24;
+  font-size:12px; font-weight:700; font-family:'Manrope',sans-serif;
+  display:flex; align-items:center; justify-content:center; flex-shrink:0;
+}
+.gen-page-name { font-family:'Manrope',sans-serif; font-size:15px; font-weight:600; flex:1; }
+.gen-page-remove {
+  width:30px; height:30px; border-radius:50%; border:none; cursor:pointer;
+  background:transparent; color:var(--dim); font-size:18px;
+  display:flex; align-items:center; justify-content:center; transition:all 0.1s; flex-shrink:0;
+}
+.gen-page-remove:hover { background:rgba(215,56,59,0.15); color:var(--error); }
+.gen-divider { height:1px; background:rgba(255,255,255,0.05); margin-bottom:14px; }
+.gen-section-label { font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:0.12em; color:var(--accent-dim); margin-bottom:10px; }
+.fmt-tabs { display:flex; gap:6px; margin-bottom:14px; }
+.fmt-tab {
+  flex:1; padding:8px 6px; border-radius:var(--r);
+  border:1px solid rgba(255,255,255,0.12); background:transparent; color:var(--dim);
+  cursor:pointer; font-size:11px; font-family:'Manrope',sans-serif; font-weight:600; transition:all 0.15s;
+}
+.fmt-tab.active { background:linear-gradient(135deg,var(--accent-dim),var(--accent)); color:#060d24; border-color:transparent; }
+.fmt-tab:disabled { opacity:0.3; cursor:not-allowed; }
+.gen-field { display:flex; flex-direction:column; gap:4px; margin-bottom:10px; }
+.gen-field label { font-size:11px; color:var(--dim); }
+.gen-field input, .gen-field textarea {
+  background:var(--s1); border:none; border-bottom:2px solid transparent;
+  color:var(--text); padding:8px 10px; border-radius:var(--r) var(--r) 0 0;
+  font-size:13px; font-family:'Inter',sans-serif; outline:none; width:100%; transition:border-color 0.15s;
+}
+.gen-field input:focus, .gen-field textarea:focus { border-bottom-color:var(--accent-dim); }
+.gen-field textarea { min-height:72px; resize:vertical; }
+
+/* Step 1 footer */
+#gen-footer1 {
+  position:fixed; bottom:0; left:0; right:0; z-index:150;
+  background:var(--s0); border-top:1px solid rgba(255,255,255,0.07);
+  padding:14px 20px; padding-bottom:max(14px,env(safe-area-inset-bottom));
+  display:none; gap:12px; align-items:center;
+  box-shadow:0 -4px 24px rgba(0,0,0,0.4);
+}
+.pages-count { font-size:12px; color:var(--dim); flex:1; font-family:'Manrope',sans-serif; }
+.pages-count strong { color:var(--text); }
+
+/* Step 2 */
+#gen-step2 { display:none; padding:20px 24px 40px; max-width:720px; margin:0 auto; }
+.step2-summary {
+  background:var(--s0); border-radius:10px; padding:14px 18px; margin-bottom:20px;
+  border:1px solid rgba(158,255,200,0.1); display:flex; align-items:center; gap:12px;
+}
+.step2-summary-text strong { font-family:'Manrope',sans-serif; font-size:14px; display:block; }
+.step2-summary-text span { font-size:12px; color:var(--dim); }
+.btn-back-step {
+  display:inline-flex; align-items:center; gap:6px; font-size:13px; color:var(--dim);
+  cursor:pointer; background:none; border:none; font-family:'Inter',sans-serif;
+  padding:0; margin-bottom:18px; transition:color 0.15s;
+}
+.btn-back-step:hover { color:var(--text); }
+
+/* Distribution accordion */
+.dist-section { margin-bottom:10px; }
+.dist-header {
+  display:flex; align-items:center; gap:12px; padding:14px 18px;
+  background:var(--s0); border-radius:10px; cursor:pointer;
+  border:1px solid rgba(255,255,255,0.05); transition:border-color 0.15s; user-select:none;
+}
+.dist-header:hover { border-color:rgba(255,255,255,0.1); }
+.dist-header.open { border-radius:10px 10px 0 0; border-bottom-color:transparent; }
+.dist-icon { font-size:18px; width:26px; text-align:center; flex-shrink:0; }
+.dist-title { font-family:'Manrope',sans-serif; font-size:14px; font-weight:600; flex:1; }
+.dist-chevron { color:var(--dim); font-size:14px; transition:transform 0.2s; }
+.dist-header.open .dist-chevron { transform:rotate(90deg); }
+.dist-body {
+  display:none; background:var(--s1);
+  border:1px solid rgba(255,255,255,0.05); border-top:none;
+  border-radius:0 0 10px 10px; padding:18px;
+}
+.dist-body.open { display:block; }
+
+/* Link dist items */
+.link-dist-item {
+  background:var(--s2); border-radius:var(--r); padding:12px 14px;
+  display:flex; align-items:center; gap:12px; margin-bottom:8px;
+}
+.link-dist-info { flex:1; min-width:0; }
+.link-dist-name { font-family:'Manrope',sans-serif; font-size:13px; font-weight:600; }
+.link-dist-url { font-size:11px; color:var(--dim); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:2px; }
+
+/* ===== SETTINGS PANEL ===== */
+#settings-overlay {
+  display:none; position:fixed; inset:0; z-index:400;
+  background:rgba(0,0,0,0.5); backdrop-filter:blur(3px);
+}
+#settings-panel {
+  position:fixed; top:0; right:0; bottom:0; z-index:401;
+  width:min(420px, 100vw); background:var(--bg);
+  border-left:1px solid rgba(255,255,255,0.06);
+  display:flex; flex-direction:column;
+  transform:translateX(100%); transition:transform 0.28s cubic-bezier(.4,0,.2,1);
+  overflow:hidden;
+}
+#settings-panel.open { transform:translateX(0); }
+.settings-header {
+  height:56px; padding:0 20px; background:var(--s0);
+  border-bottom:1px solid rgba(255,255,255,0.05);
+  display:flex; align-items:center; gap:12px; flex-shrink:0;
+}
+.settings-header-title { font-family:'Manrope',sans-serif; font-size:15px; font-weight:700; flex:1; }
+.settings-body { flex:1; overflow-y:auto; padding:24px 20px 40px; }
+.settings-section { margin-bottom:32px; }
+.settings-section-title { font-family:'Manrope',sans-serif; font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:var(--dim); margin-bottom:14px; padding-bottom:8px; border-bottom:1px solid rgba(255,255,255,0.06); }
+
+/* Link cards in settings */
+.link-settings-card {
+  background:var(--s1); border-radius:10px; padding:16px;
+  border:1px solid rgba(255,255,255,0.05); margin-bottom:10px;
+}
+.link-settings-row { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+.link-settings-name { font-family:'Manrope',sans-serif; font-size:14px; font-weight:600; flex:1; cursor:text; border:none; background:none; color:var(--text); outline:none; padding:0; }
+.link-settings-name:focus { outline:1px solid var(--accent-dim); border-radius:3px; padding:2px 4px; }
+.link-settings-url { font-size:11px; color:var(--dim); margin-bottom:10px; word-break:break-all; }
+.link-settings-domain { display:flex; gap:8px; align-items:center; }
+.link-settings-domain input {
+  flex:1; background:var(--s2); border:none; border-bottom:2px solid transparent;
+  color:var(--text); padding:7px 9px; border-radius:var(--r) var(--r) 0 0;
+  font-size:12px; font-family:'Inter',sans-serif; outline:none; transition:border-color 0.15s;
+  min-width:0;
+}
+.link-settings-domain input:focus { border-bottom-color:var(--accent-dim); }
+.link-settings-domain input::placeholder { color:var(--dim); }
+.domain-hint { font-size:10px; color:var(--dim); line-height:1.5; margin-top:6px; }
+.domain-hint code { background:var(--s2); padding:1px 5px; border-radius:3px; font-size:10px; color:var(--accent-dim); }
+
+/* ===== PICKER SHEET ===== */
+#picker-overlay { display:none; position:fixed; inset:0; z-index:300; background:rgba(0,0,0,0.6); backdrop-filter:blur(2px); }
+#picker-sheet {
+  position:fixed; bottom:0; left:0; right:0; z-index:301;
+  background:var(--s0); border-radius:18px 18px 0 0;
+  padding:0 0 env(safe-area-inset-bottom);
+  transform:translateY(100%); transition:transform 0.28s cubic-bezier(.4,0,.2,1);
+  max-height:75vh; display:flex; flex-direction:column;
+}
+#picker-sheet.open { transform:translateY(0); }
+.sheet-handle { width:36px; height:4px; border-radius:2px; background:rgba(255,255,255,0.15); margin:12px auto 0; }
+.sheet-header {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:14px 20px 12px; border-bottom:1px solid rgba(255,255,255,0.06);
+}
+.sheet-title { font-family:'Manrope',sans-serif; font-size:15px; font-weight:700; }
+.sheet-close {
+  width:30px; height:30px; border-radius:50%; border:none; cursor:pointer;
+  background:var(--s2); color:var(--dim); font-size:16px;
+  display:flex; align-items:center; justify-content:center;
+}
+.sheet-close:hover { color:var(--text); }
+.sheet-list { overflow-y:auto; padding:12px 16px 24px; display:flex; flex-direction:column; gap:8px; }
+.picker-item {
+  padding:14px 16px; border-radius:10px; background:var(--s1);
+  border:1px solid rgba(255,255,255,0.04); transition:all 0.15s;
+  display:flex; align-items:center; justify-content:space-between; cursor:pointer;
+}
+.picker-item:hover { border-color:rgba(158,255,200,0.2); background:var(--s2); }
+.picker-item-name { font-family:'Manrope',sans-serif; font-size:14px; font-weight:600; }
+.picker-item-date { font-size:11px; color:var(--dim); margin-top:3px; }
+.picker-item-add {
+  width:32px; height:32px; border-radius:50%; background:rgba(158,255,200,0.1); color:var(--accent);
+  border:none; font-size:20px; cursor:pointer;
+  display:flex; align-items:center; justify-content:center; flex-shrink:0;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 640px) {
+  header { padding:0 14px; }
+  #view-plantillas { padding:20px 14px 88px; }
+  .page-title { font-size:20px; margin-bottom:18px; }
+  .grid { grid-template-columns:1fr; gap:12px; }
+  .tmpl-card { padding:16px; border-radius:12px; }
+  .tmpl-name { font-size:16px; }
+  #gen-step1 { padding:16px 14px 0; }
+  #gen-step2 { padding:16px 14px 40px; }
+  .gen-page-card { padding:16px; }
+  .btn-row { flex-direction:column; }
+  .btn.full { width:100%; }
+  .step-bar { padding:12px 16px; }
+  .fab { display:flex; }
 }
 </style>
 </head>
 <body>
 
+<!-- ===== HEADER ===== -->
 <header>
   <div class="logo"><span>[</span> MENU BAR <span>]</span></div>
-  <div class="hdr-right">
-    <span class="hdr-user" id="hdr-user"></span>
-    <div id="ig-header" style="display:flex;align-items:center;gap:8px;"></div>
-    <button class="hdr-btn primary" onclick="location.href='/editor.html'">+ Nueva plantilla</button>
-    <button class="hdr-btn" id="btn-logout">Salir</button>
-  </div>
+  <button class="hdr-icon-btn" id="btn-settings" title="Ajustes">⚙</button>
+  <button class="hdr-icon-btn" id="btn-logout-icon" title="Salir">↪</button>
 </header>
 
-<!-- LISTA -->
-<div id="view-list">
-  <div class="page-title">Mis <span>Plantillas</span></div>
-  <div class="grid" id="grid"></div>
+<!-- ===== TABS ===== -->
+<div class="tab-bar">
+  <button class="tab-btn active" id="tab-generar"   onclick="switchTab('generar')">Generar</button>
+  <button class="tab-btn"        id="tab-plantillas" onclick="switchTab('plantillas')">Plantillas</button>
 </div>
 
-<!-- FORMULARIO -->
-<div id="view-form">
-  <button class="back-btn" id="back-btn">← Volver a plantillas</button>
-  <div class="form-title" id="form-title"></div>
-  <div class="form-subtitle">Rellena los campos y genera la imagen</div>
-  <div id="form-body"></div>
-
-  <!-- PANEL INSTAGRAM -->
-  <div id="ig-section" style="display:none">
-    <div class="form-card">
-      <div class="form-card-title">Publicar en Instagram Stories</div>
-      <div id="ig-section-body"></div>
+<!-- ========== PLANTILLAS ========== -->
+<div id="view-plantillas" style="display:none">
+  <div id="view-plantillas-inner" style="padding:24px 24px 24px; max-width:960px; margin:0 auto;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;">
+      <div class="page-title">Mis <span>Plantillas</span></div>
+      <button class="btn green sm" onclick="location.href='/editor.html'">+ Nueva</button>
     </div>
-    <div class="form-card" id="ig-scheduled-card" style="display:none">
-      <div class="form-card-title">Publicaciones programadas</div>
-      <div class="scheduled-list" id="ig-scheduled-list"></div>
+    <div class="grid" id="grid"></div>
+  </div>
+</div>
+
+<!-- ========== GENERAR ========== -->
+<div id="view-generar">
+  <div class="step-bar">
+    <div class="step-item active" id="step-ind-1">
+      <div class="step-num">1</div>
+      <div class="step-label">Páginas</div>
+    </div>
+    <div class="step-sep"></div>
+    <div class="step-item" id="step-ind-2">
+      <div class="step-num">2</div>
+      <div class="step-label">Distribuir</div>
     </div>
   </div>
 
-  <!-- PANEL CORREO -->
-  <div id="email-section">
-    <div class="form-card">
-      <div class="form-card-title">Enviar por correo</div>
-      <div class="email-tabs">
-        <button class="email-tab active" id="tab-now" onclick="switchEmailTab('now')">Enviar ahora</button>
-        <button class="email-tab" id="tab-schedule" onclick="switchEmailTab('schedule')">Programar envío</button>
-      </div>
+  <!-- Step 1 -->
+  <div id="gen-step1">
+    <div id="gen-empty" class="gen-empty">
+      <strong>Sin páginas</strong>
+      <p>Añade las plantillas que quieres generar.<br>Cada una será una página del PDF o un JPG individual.</p>
+      <button class="btn green" onclick="openPicker()">+ Añadir plantilla</button>
+    </div>
+    <div id="gen-pages" class="gen-pages" style="display:none"></div>
+    <div id="gen-add-row" style="display:none; margin-top:14px;">
+      <button class="btn-dashed" onclick="openPicker()">+ Añadir otra plantilla</button>
+    </div>
+  </div>
 
-      <!-- Campos comunes -->
-      <div class="form-field">
-        <label>Destinatario</label>
-        <input type="email" id="email-to" placeholder="correo@destino.com">
+  <!-- Step 2 -->
+  <div id="gen-step2">
+    <button class="btn-back-step" onclick="goToStep1()">← Volver a páginas</button>
+    <div class="step2-summary">
+      <div style="font-size:22px;">✓</div>
+      <div class="step2-summary-text">
+        <strong id="step2-pages-label">0 páginas</strong>
+        <span>Elige cómo distribuirlas</span>
       </div>
-      <div class="form-field">
-        <label>Asunto</label>
-        <input type="text" id="email-subject" placeholder="Menú del día">
-      </div>
+    </div>
 
-      <!-- Panel: ahora -->
-      <div class="email-panel active" id="panel-now">
-        <div class="form-status" id="email-status-now"></div>
-        <button class="email-send-btn" id="btn-send-now" onclick="sendEmailNow()">ENVIAR AHORA</button>
+    <!-- Descargar -->
+    <div class="dist-section">
+      <div class="dist-header" onclick="toggleDist('download')">
+        <span class="dist-icon">📥</span><span class="dist-title">Descargar</span><span class="dist-chevron">›</span>
       </div>
-
-      <!-- Panel: programar -->
-      <div class="email-panel" id="panel-schedule">
-        <div class="form-field">
-          <label>Fecha y hora de envío</label>
-          <input type="datetime-local" id="email-send-at">
+      <div class="dist-body" id="dist-download">
+        <p style="font-size:12px;color:var(--dim);margin-bottom:14px;">Descarga como JPGs (ZIP) o PDF.</p>
+        <div class="btn-row">
+          <button class="btn ghost" id="btn-dl-jpg" onclick="exportPages('jpg')">Exportar JPG (ZIP)</button>
+          <button class="btn green" id="btn-dl-pdf" onclick="exportPages('pdf')">Exportar PDF</button>
         </div>
-        <div class="form-status" id="email-status-schedule"></div>
-        <button class="email-send-btn" id="btn-schedule" onclick="scheduleEmail()">PROGRAMAR ENVÍO</button>
+        <div class="form-status" id="dl-status" style="margin-top:8px;"></div>
       </div>
     </div>
 
-    <!-- Lista de envíos programados pendientes -->
-    <div class="form-card" id="scheduled-card" style="display:none">
-      <div class="form-card-title">Envíos programados</div>
-      <div class="scheduled-list" id="scheduled-list"></div>
+    <!-- Correo -->
+    <div class="dist-section">
+      <div class="dist-header" onclick="toggleDist('email')">
+        <span class="dist-icon">✉️</span><span class="dist-title">Correo electrónico</span><span class="dist-chevron">›</span>
+      </div>
+      <div class="dist-body" id="dist-email">
+        <div class="field"><label>Destinatario</label><input type="email" id="email-to" placeholder="correo@destino.com"></div>
+        <div class="field"><label>Asunto</label><input type="text" id="email-subject" placeholder="Menú del día"></div>
+        <div class="ptabs">
+          <button class="ptab active" id="etab-now"  onclick="switchPtab('email','now')">Enviar ahora</button>
+          <button class="ptab"        id="etab-sched" onclick="switchPtab('email','sched')">Programar</button>
+        </div>
+        <div class="ppanel active" id="epanel-now">
+          <div class="form-status" id="email-status-now"></div>
+          <button class="btn blue full" onclick="sendEmailNow()">ENVIAR AHORA</button>
+        </div>
+        <div class="ppanel" id="epanel-sched">
+          <div class="field"><label>Fecha y hora</label><input type="datetime-local" id="email-send-at"></div>
+          <div class="form-status" id="email-status-sched"></div>
+          <button class="btn blue full" onclick="scheduleEmail()">PROGRAMAR ENVÍO</button>
+          <div id="email-sched-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Instagram -->
+    <div class="dist-section">
+      <div class="dist-header" onclick="toggleDist('ig')">
+        <span class="dist-icon">📸</span><span class="dist-title">Instagram Stories</span><span class="dist-chevron">›</span>
+      </div>
+      <div class="dist-body" id="dist-ig"><div id="ig-dist-body"></div></div>
+    </div>
+
+    <!-- Link público -->
+    <div class="dist-section">
+      <div class="dist-header" onclick="toggleDist('link')">
+        <span class="dist-icon">🔗</span><span class="dist-title">Link público</span><span class="dist-chevron">›</span>
+      </div>
+      <div class="dist-body" id="dist-link"><div id="link-dist-body"></div></div>
     </div>
   </div>
+</div>
+
+<!-- Step 1 footer -->
+<div id="gen-footer1">
+  <span class="pages-count"><strong id="gen-pages-count">0</strong> páginas</span>
+  <button class="btn green" onclick="goToStep2()">Continuar →</button>
+</div>
+
+<!-- FAB -->
+<button class="fab" id="fab-main">+</button>
+
+<!-- ===== SETTINGS PANEL ===== -->
+<div id="settings-overlay" onclick="closeSettings()"></div>
+<div id="settings-panel">
+  <div class="settings-header">
+    <span class="settings-header-title">Ajustes</span>
+    <button class="hdr-icon-btn" onclick="closeSettings()">✕</button>
+  </div>
+  <div class="settings-body">
+
+    <!-- Cuenta -->
+    <div class="settings-section">
+      <div class="settings-section-title">Cuenta</div>
+      <div class="card">
+        <div class="field"><label>Usuario</label><input type="text" id="s-username" readonly style="opacity:0.6;cursor:default;"></div>
+      </div>
+      <div class="card">
+        <div class="card-label">Cambiar contraseña</div>
+        <div class="field"><label>Contraseña actual</label><input type="password" id="s-pass-cur" placeholder="••••••"></div>
+        <div class="field"><label>Nueva contraseña</label><input type="password" id="s-pass-new" placeholder="Mínimo 6 caracteres"></div>
+        <div class="form-status" id="s-pass-status"></div>
+        <button class="btn ghost full" style="margin-top:8px;" onclick="changePassword()">Guardar contraseña</button>
+      </div>
+      <div class="card">
+        <div class="card-label">Plan</div>
+        <p style="font-size:13px;color:var(--dim);">Plan actual: <strong style="color:var(--text);">Básico</strong></p>
+      </div>
+      <button class="btn ghost full" style="margin-top:4px;" onclick="doLogout()">Cerrar sesión</button>
+    </div>
+
+    <!-- Conexiones -->
+    <div class="settings-section">
+      <div class="settings-section-title">Conexiones</div>
+      <div class="card" id="s-ig-card">
+        <div class="card-label">Instagram</div>
+        <div id="s-ig-body"></div>
+      </div>
+    </div>
+
+    <!-- Links públicos -->
+    <div class="settings-section">
+      <div class="settings-section-title">Links públicos</div>
+      <p style="font-size:12px;color:var(--dim);margin-bottom:16px;line-height:1.7;">Crea hasta 3 links permanentes. Puedes asignarle tu propio dominio con un registro CNAME.</p>
+      <div id="s-links-list"></div>
+      <button class="btn-dashed" id="s-btn-create-link" onclick="createLink()">+ Crear link público</button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ===== PICKER SHEET ===== -->
+<div id="picker-overlay" onclick="closePicker()"></div>
+<div id="picker-sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-header">
+    <span class="sheet-title">Elegir plantilla</span>
+    <button class="sheet-close" onclick="closePicker()">×</button>
+  </div>
+  <div class="sheet-list" id="picker-list"></div>
 </div>
 
 <script>
 // ===== AUTH =====
 const token = localStorage.getItem('token');
 if (!token) location.href = '/login.html';
-document.getElementById('hdr-user').textContent = localStorage.getItem('username') || '';
 
-document.getElementById('btn-logout').addEventListener('click', () => {
-  localStorage.removeItem('token'); localStorage.removeItem('username');
-  location.href = '/login.html';
-});
+function doLogout() { localStorage.removeItem('token'); localStorage.removeItem('username'); location.href = '/login.html'; }
+document.getElementById('btn-logout-icon').addEventListener('click', doLogout);
+document.getElementById('btn-settings').addEventListener('click', openSettings);
 
 function api(url, opts = {}) {
   return fetch(url, {
@@ -284,12 +603,61 @@ function api(url, opts = {}) {
   });
 }
 
-// ===== LOAD TEMPLATES =====
+// ===== TABS =====
+let activeTab = 'generar';
+
+function switchTab(tab) {
+  activeTab = tab;
+  ['generar','plantillas'].forEach(t => {
+    document.getElementById(`tab-${t}`).classList.toggle('active', t === tab);
+    document.getElementById(`view-${t}`).style.display = t === tab ? 'block' : 'none';
+  });
+  const footer = document.getElementById('gen-footer1');
+  footer.style.display = (tab === 'generar' && genStep === 1 && genPages.length) ? 'flex' : 'none';
+  updateFab();
+}
+
+function updateFab() {
+  const fab = document.getElementById('fab-main');
+  if (window.innerWidth > 640) { fab.style.display = 'none'; return; }
+  if (activeTab === 'plantillas') { fab.style.display = 'flex'; fab.textContent = '+'; fab.onclick = () => location.href = '/editor.html'; }
+  else if (activeTab === 'generar' && genStep === 1) { fab.style.display = 'flex'; fab.textContent = '+'; fab.onclick = openPicker; }
+  else { fab.style.display = 'none'; }
+}
+window.addEventListener('resize', updateFab);
+
+// ===== SETTINGS =====
+function openSettings() {
+  document.getElementById('settings-overlay').style.display = 'block';
+  document.getElementById('settings-panel').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  loadSettingsData();
+}
+function closeSettings() {
+  document.getElementById('settings-overlay').style.display = 'none';
+  document.getElementById('settings-panel').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+async function loadSettingsData() {
+  // Cuenta
+  try {
+    const res = await api('/api/me');
+    const me = await res.json();
+    document.getElementById('s-username').value = me.username || '';
+  } catch (_) {}
+  // IG
+  renderSettingsIG();
+  // Links
+  await loadLinks();
+}
+
+// ===== PLANTILLAS =====
 let templates = [];
 
 async function loadTemplates() {
   const res = await api('/api/templates');
-  if (res.status === 401) { location.href = '/login.html'; return; }
+  if (res.status === 401) { localStorage.removeItem('token'); location.href = '/login.html'; return; }
   templates = await res.json();
   renderGrid();
 }
@@ -297,16 +665,14 @@ async function loadTemplates() {
 function renderGrid() {
   const grid = document.getElementById('grid');
   grid.innerHTML = '';
-
   if (!templates.length) {
-    grid.innerHTML = `<div class="empty"><strong>Sin plantillas</strong>Crea tu primera plantilla con el botón "+ Nueva plantilla"</div>`;
+    grid.innerHTML = `<div class="empty"><strong>Sin plantillas</strong>Crea tu primera con "+ Nueva"</div>`;
     return;
   }
-
   for (const t of templates) {
     const card = document.createElement('div');
     card.className = 'tmpl-card';
-    const date = new Date(t.updated_at).toLocaleDateString('es-ES', { day:'2-digit', month:'short', year:'numeric' });
+    const date = new Date(t.updated_at).toLocaleDateString('es-ES', {day:'2-digit',month:'short',year:'numeric'});
     card.innerHTML = `
       <div class="tmpl-card-top">
         <div class="tmpl-name">${t.name}</div>
@@ -319,15 +685,12 @@ function renderGrid() {
         </div>
       </div>
       <div class="tmpl-info">Actualizada ${date}</div>
-      <button class="btn-generar" onclick="openForm(${t.id})">GENERAR MENÚ</button>`;
+      <button class="btn green sm full" style="margin-top:4px;" onclick="addPageFromTemplate(${t.id})">+ Añadir a Generar</button>`;
     grid.appendChild(card);
   }
-
-  // Cerrar dropdowns al hacer click fuera
   document.addEventListener('click', e => {
-    if (!e.target.classList.contains('menu-btn')) {
+    if (!e.target.classList.contains('menu-btn'))
       document.querySelectorAll('.dropdown.open').forEach(d => d.classList.remove('open'));
-    }
   });
   document.querySelectorAll('.menu-btn').forEach(btn => {
     btn.addEventListener('click', e => {
@@ -339,7 +702,6 @@ function renderGrid() {
 }
 
 function editTemplate(id) { location.href = `/editor.html?id=${id}`; }
-
 async function deleteTemplate(id) {
   if (!confirm('¿Eliminar esta plantilla?')) return;
   await api(`/api/templates/${id}`, { method: 'DELETE' });
@@ -347,36 +709,25 @@ async function deleteTemplate(id) {
   renderGrid();
 }
 
-// ===== FORM VIEW =====
-let currentTemplate = null;
-let formState = {};
+// ===== GENERAR STATE =====
+let genPages = [];
+let genStep  = 1;
+let igStatus = { connected: false };
+let userLinks = [];
 
-async function openForm(id) {
-  const res = await api(`/api/templates/${id}`);
-  const tpl = await res.json();
-  currentTemplate = tpl;
-  formState = {};
-
-  document.getElementById('view-list').style.display = 'none';
-  document.getElementById('view-form').style.display = 'block';
-  document.getElementById('form-title').textContent = tpl.name;
-
-  buildForm(tpl.config);
+function renderGenStep(step) {
+  genStep = step;
+  document.getElementById('gen-step1').style.display = step === 1 ? 'block' : 'none';
+  document.getElementById('gen-step2').style.display = step === 2 ? 'block' : 'none';
+  document.getElementById('step-ind-1').classList.toggle('active', step === 1);
+  document.getElementById('step-ind-2').classList.toggle('active', step === 2);
+  const footer = document.getElementById('gen-footer1');
+  footer.style.display = (step === 1 && genPages.length && activeTab === 'generar') ? 'flex' : 'none';
+  if (step === 2) renderStep2();
+  updateFab();
 }
 
-document.getElementById('back-btn').addEventListener('click', () => {
-  document.getElementById('view-form').style.display = 'none';
-  document.getElementById('view-list').style.display = 'block';
-  document.getElementById('email-section').style.display = 'none';
-  document.getElementById('ig-section').style.display = 'none';
-  currentTemplate = null; formState = {}; currentRenderConfig = null;
-});
-
-function getFmtConfig(config, fmt) {
-  // New multi-format structure or legacy fallback
-  return config[fmt] ?? config;
-}
-
+function getFmtConfig(config, fmt) { return config[fmt] ?? config; }
 function getAvailableFormats(config) {
   if (config.story || config.folio) {
     const out = [];
@@ -387,420 +738,495 @@ function getAvailableFormats(config) {
   return [config.formato ?? 'story'];
 }
 
-function buildDynamicSection(config, fmt, container) {
-  container.innerHTML = '';
-  const fmtConfig = getFmtConfig(config, fmt);
+async function addPageFromTemplate(templateId) {
+  const res = await api(`/api/templates/${templateId}`);
+  const tpl = await res.json();
+  const config = typeof tpl.config === 'string' ? JSON.parse(tpl.config) : tpl.config;
+  const available = getAvailableFormats(config);
+  genPages.push({ templateId, config, name: tpl.name, selectedFormat: available[0], fondo_b64: null, fieldValues: {} });
+  renderGenPages();
+  switchTab('generar');
+}
+
+function renderGenPages() {
+  const emptyEl  = document.getElementById('gen-empty');
+  const pagesEl  = document.getElementById('gen-pages');
+  const addRowEl = document.getElementById('gen-add-row');
+  const countEl  = document.getElementById('gen-pages-count');
+  const footer   = document.getElementById('gen-footer1');
+  emptyEl.style.display  = genPages.length ? 'none'  : 'block';
+  pagesEl.style.display  = genPages.length ? 'flex'  : 'none';
+  addRowEl.style.display = genPages.length ? 'block' : 'none';
+  countEl.textContent    = genPages.length;
+  footer.style.display   = (genStep === 1 && genPages.length && activeTab === 'generar') ? 'flex' : 'none';
+  pagesEl.innerHTML = '';
+  for (let i = 0; i < genPages.length; i++) pagesEl.appendChild(buildPageCard(i));
+  updateFab();
+}
+
+function buildPageCard(index) {
+  const pg = genPages[index];
+  const card = document.createElement('div');
+  card.className = 'gen-page-card';
+  const available = getAvailableFormats(pg.config);
+  const FMT_LABELS = { story: 'Story (1080×1920)', folio: 'A4 (2480×3508)' };
+  card.innerHTML = `
+    <div class="gen-page-header">
+      <div class="gen-page-num">${index + 1}</div>
+      <div class="gen-page-name">${pg.name}</div>
+      <button class="gen-page-remove" title="Quitar">×</button>
+    </div>
+    <div class="gen-divider"></div>
+    <div class="gen-section-label">Formato</div>
+    <div class="fmt-tabs" id="fmt-tabs-${index}"></div>
+    <div id="gen-fields-${index}"></div>`;
+  card.querySelector('.gen-page-remove').addEventListener('click', () => { genPages.splice(index, 1); renderGenPages(); });
+  const fmtTabsEl = card.querySelector(`#fmt-tabs-${index}`);
+  ['story','folio'].forEach(fmt => {
+    const btn = document.createElement('button');
+    btn.className = 'fmt-tab' + (pg.selectedFormat === fmt ? ' active' : '');
+    btn.textContent = FMT_LABELS[fmt]; btn.disabled = !available.includes(fmt);
+    btn.addEventListener('click', () => {
+      pg.selectedFormat = fmt; pg.fondo_b64 = null;
+      fmtTabsEl.querySelectorAll('.fmt-tab').forEach(b => b.classList.toggle('active', b.textContent === FMT_LABELS[fmt]));
+      buildPageFields(index, card.querySelector(`#gen-fields-${index}`));
+    });
+    fmtTabsEl.appendChild(btn);
+  });
+  buildPageFields(index, card.querySelector(`#gen-fields-${index}`));
+  return card;
+}
+
+function buildPageFields(index, container) {
+  const pg = genPages[index];
+  const fmtConfig = getFmtConfig(pg.config, pg.selectedFormat);
   const varBlocks = (fmtConfig.blocks ?? []).filter(b => b.type === 'variable');
+  container.innerHTML = '';
 
   if (!fmtConfig.fondo_locked || !fmtConfig.fondo_b64) {
-    const card = makeCard('Fondo');
-    const ff = field('Imagen de fondo', `<input type="file" id="ff-fondo" accept="image/*">`);
-    card.appendChild(ff);
-    container.appendChild(card);
-    document.getElementById('ff-fondo').addEventListener('change', async e => {
-      const f = e.target.files[0]; if (!f) return;
-      formState.fondo_b64 = await toB64(f);
-    });
+    const sec = document.createElement('div');
+    sec.innerHTML = `<div class="gen-section-label" style="margin-top:10px;">Fondo</div>`;
+    const inp = document.createElement('input');
+    inp.type = 'file'; inp.accept = 'image/*';
+    inp.addEventListener('change', async e => { const f = e.target.files[0]; if (f) pg.fondo_b64 = await toB64(f); });
+    sec.appendChild(inp);
+    container.appendChild(sec);
   }
 
   if (varBlocks.length) {
-    const card = makeCard('Campos del menú');
+    const sec = document.createElement('div');
+    sec.innerHTML = `<div class="gen-section-label" style="margin-top:10px;">Campos</div>`;
     for (const b of varBlocks) {
-      const inputId = `ff-${b.key}`;
-      const inputHtml = b.multiline
-        ? `<textarea id="${inputId}" placeholder="${b.label}..."></textarea>`
-        : `<input type="text" id="${inputId}" placeholder="${b.label}...">`;
-      card.appendChild(field(b.label, inputHtml));
+      const fieldEl = document.createElement('div');
+      fieldEl.className = 'gen-field';
+      const lbl = document.createElement('label');
+      lbl.textContent = b.label;
+      const inp = b.multiline ? document.createElement('textarea') : document.createElement('input');
+      if (!b.multiline) inp.type = 'text';
+      inp.placeholder = b.label + '...';
+      inp.value = pg.fieldValues[b.key] || '';
+      inp.addEventListener('input', () => { pg.fieldValues[b.key] = inp.value; });
+      fieldEl.appendChild(lbl); fieldEl.appendChild(inp);
+      sec.appendChild(fieldEl);
     }
-    container.appendChild(card);
+    container.appendChild(sec);
   }
 }
 
-function buildForm(config) {
-  const body = document.getElementById('form-body');
-  body.innerHTML = '';
+function goToStep2() {
+  for (let i = 0; i < genPages.length; i++) {
+    const pg = genPages[i];
+    const fmtConfig = getFmtConfig(pg.config, pg.selectedFormat);
+    if (!pg.fondo_b64 && !fmtConfig.fondo_b64) {
+      showToast(`Página ${i + 1} (${pg.name}): falta imagen de fondo`, 'err'); return;
+    }
+  }
+  renderGenStep(2);
+}
+function goToStep1() { renderGenStep(1); }
 
-  const available = getAvailableFormats(config);
-  const FMT_LABELS = { story: 'Story Instagram (1080×1920)', folio: 'A4 / Folio (2480×3508)' };
-  formState.selectedFormat = available[0];
-  formState.fondo_b64 = null;
+function renderStep2() {
+  const n = genPages.length;
+  document.getElementById('step2-pages-label').textContent = `${n} página${n !== 1 ? 's' : ''} configurada${n !== 1 ? 's' : ''}`;
+  renderIGDist();
+  renderLinkDist();
+}
 
-  // Format selector (always visible)
-  const fmtCard = makeCard('Formato de exportación');
-  const fmtBtns = document.createElement('div');
-  fmtBtns.style.cssText = 'display:flex;gap:8px;';
-  const ALL_FMTS = ['story', 'folio'];
-  for (const fmt of ALL_FMTS) {
-    const btn = document.createElement('button');
-    btn.type = 'button';
-    btn.dataset.fmt = fmt;
-    btn.textContent = FMT_LABELS[fmt] ?? fmt;
-    const isAvailable = available.includes(fmt);
-    btn.style.cssText = `flex:1;padding:10px 8px;border-radius:var(--r);border:1px solid;cursor:${isAvailable ? 'pointer' : 'not-allowed'};font-size:12px;font-family:'Manrope',sans-serif;font-weight:600;letter-spacing:0.04em;transition:all 0.15s;opacity:${isAvailable ? '1' : '0.35'};`;
-    if (!isAvailable) btn.disabled = true;
-    btn.addEventListener('click', () => {
-      if (!isAvailable) return;
-      formState.selectedFormat = fmt;
-      formState.fondo_b64 = null;
-      fmtBtns.querySelectorAll('button').forEach(b => {
-        const active = b.dataset.fmt === fmt;
-        b.style.background = active ? 'linear-gradient(135deg,var(--accent-dim),var(--accent))' : 'transparent';
-        b.style.color = active ? '#060d24' : 'var(--dim)';
-        b.style.borderColor = active ? 'transparent' : 'rgba(255,255,255,0.15)';
-      });
-      buildDynamicSection(config, fmt, dynamicDiv);
+function buildRenderConfigs() {
+  return genPages.map(pg => {
+    const fmtConfig = getFmtConfig(pg.config, pg.selectedFormat);
+    const fondo_b64 = pg.fondo_b64 || fmtConfig.fondo_b64;
+    const filledBlocks = (fmtConfig.blocks ?? []).map(b => {
+      let content = b.type === 'static' ? b.content : (pg.fieldValues[b.key] || '');
+      if (b.multiline) content = content.split('\n').filter(s => s.trim());
+      return { x:b.x, y:b.y, w:b.w, align:b.align, content, font_family:b.font_family, font_size:b.font_size, text_color:b.text_color };
     });
-    fmtBtns.appendChild(btn);
-  }
-  // Set initial active state
-  fmtBtns.querySelectorAll('button').forEach(b => {
-    const active = b.dataset.fmt === formState.selectedFormat;
-    b.style.background = active ? 'linear-gradient(135deg,var(--accent-dim),var(--accent))' : 'transparent';
-    b.style.color = active ? '#060d24' : 'var(--dim)';
-    b.style.borderColor = active ? 'transparent' : 'rgba(255,255,255,0.15)';
+    return { fondo_b64, formato: pg.selectedFormat, letter_spacing: pg.config.letter_spacing, blocks: filledBlocks };
   });
-  fmtCard.appendChild(fmtBtns);
-  body.appendChild(fmtCard);
-
-  // Dynamic section: fondo + fields
-  const dynamicDiv = document.createElement('div');
-  dynamicDiv.id = 'form-dynamic';
-  body.appendChild(dynamicDiv);
-  buildDynamicSection(config, formState.selectedFormat, dynamicDiv);
-
-  // Render button
-  const renderCard = makeCard('');
-  const status = document.createElement('div');
-  status.className = 'form-status'; status.id = 'form-status';
-  const btn = document.createElement('button');
-  btn.className = 'render-btn'; btn.id = 'form-render-btn'; btn.textContent = 'GENERAR IMAGEN';
-  const img = document.createElement('img');
-  img.id = 'form-result-img';
-  const dl = document.createElement('a');
-  dl.id = 'form-dl'; dl.download = 'menu.png'; dl.textContent = '⬇ Descargar PNG';
-  renderCard.append(status, btn, img, dl);
-  body.appendChild(renderCard);
-
-  btn.addEventListener('click', () => renderForm(config, status, btn, img, dl));
 }
 
-async function renderForm(config, statusEl, btn, imgEl, dlEl) {
-  const fmt = formState.selectedFormat ?? 'story';
-  const fmtConfig = getFmtConfig(config, fmt);
-  const fondo_b64 = formState.fondo_b64 || fmtConfig.fondo_b64;
-  if (!fondo_b64) { statusEl.textContent = '⚠ Sube una imagen de fondo'; statusEl.className = 'form-status err'; return; }
+function toggleDist(id) {
+  const body   = document.getElementById(`dist-${id}`);
+  const header = body.previousElementSibling;
+  const opening = !body.classList.contains('open');
+  // Close others
+  document.querySelectorAll('.dist-body.open').forEach(b => { b.classList.remove('open'); b.previousElementSibling.classList.remove('open'); });
+  if (opening) { body.classList.add('open'); header.classList.add('open'); }
+}
 
-  btn.disabled = true; statusEl.textContent = 'Generando...'; statusEl.className = 'form-status';
-
-  const filledBlocks = (fmtConfig.blocks ?? []).map(b => {
-    let content = b.type === 'static' ? b.content : (document.getElementById(`ff-${b.key}`)?.value || '');
-    if (b.multiline) content = content.split('\n').filter(s => s.trim());
-    return { x: b.x, y: b.y, w: b.w, align: b.align, content, font_family: b.font_family, font_size: b.font_size, text_color: b.text_color };
-  });
-
-  const body = {
-    fondo_b64, formato: fmt,
-    letter_spacing: config.letter_spacing,
-    blocks: filledBlocks,
-  };
-
+// ===== DOWNLOAD =====
+async function exportPages(format) {
+  const btnJ = document.getElementById('btn-dl-jpg');
+  const btnP = document.getElementById('btn-dl-pdf');
+  const sEl  = document.getElementById('dl-status');
+  btnJ.disabled = btnP.disabled = true;
+  sEl.textContent = 'Generando...'; sEl.className = 'form-status';
   try {
-    const res = await api('/api/render', { method: 'POST', body: JSON.stringify(body) });
+    const res = await api('/api/export', { method:'POST', body: JSON.stringify({ pages: buildRenderConfigs(), format }) });
     if (!res.ok) { const e = await res.json(); throw new Error(e.error); }
     const blob = await res.blob();
-    const url = URL.createObjectURL(blob);
-    imgEl.src = url; imgEl.style.display = 'block';
-    dlEl.href = url; dlEl.style.display = 'block';
-    statusEl.textContent = '✓ Imagen generada'; statusEl.className = 'form-status ok';
-    showEmailSection(body, currentTemplate.name);
-    showIGSection(body, currentTemplate.name);
-  } catch (err) {
-    statusEl.textContent = '❌ ' + err.message; statusEl.className = 'form-status err';
-  } finally {
-    btn.disabled = false;
-  }
+    const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: format === 'pdf' ? 'menu.pdf' : 'menus.zip' });
+    a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+    sEl.textContent = `✓ ${format === 'pdf' ? 'PDF' : 'ZIP'} descargado`; sEl.className = 'form-status ok';
+  } catch (err) { sEl.textContent = '❌ ' + err.message; sEl.className = 'form-status err'; }
+  finally { btnJ.disabled = btnP.disabled = false; }
 }
-
-// ===== INSTAGRAM =====
-async function loadIgStatus() {
-  const res  = await api('/api/instagram/status');
-  const data = await res.json();
-  const el   = document.getElementById('ig-header');
-  if (data.connected) {
-    el.innerHTML = `
-      <span style="font-size:11px;color:var(--dim);">IG: <strong style="color:var(--accent-dim);">@${data.username}</strong></span>
-      <button class="hdr-btn" id="btn-ig-disconnect">Desconectar IG</button>`;
-    document.getElementById('btn-ig-disconnect').addEventListener('click', disconnectIG);
-  } else {
-    el.innerHTML = `<button class="hdr-btn" onclick="connectIG()">Conectar Instagram</button>`;
-  }
-}
-
-function connectIG() { window.location.href = '/api/instagram/connect'; }
-
-async function disconnectIG() {
-  if (!confirm('¿Desconectar Instagram?')) return;
-  await api('/api/instagram/disconnect', { method: 'DELETE' });
-  loadIgStatus();
-}
-
-async function showIGSection(renderConfig, templateName) {
-  const res  = await api('/api/instagram/status');
-  const data = await res.json();
-  const body = document.getElementById('ig-section-body');
-  document.getElementById('ig-section').style.display = 'block';
-
-  if (!data.connected) {
-    body.innerHTML = `
-      <p style="font-size:12px;color:var(--dim);margin-bottom:10px;">Conecta tu cuenta de Instagram para publicar directamente en Stories.</p>
-      <button class="email-send-btn" style="background:linear-gradient(135deg,#833ab4,#e1306c,#fd1d1d);" onclick="connectIG()">CONECTAR INSTAGRAM</button>`;
-    return;
-  }
-
-  body.innerHTML = `
-    <p style="font-size:12px;color:var(--dim);margin-bottom:10px;">Cuenta: <strong style="color:var(--accent-dim);">@${data.username}</strong></p>
-    <div class="email-tabs" style="margin-bottom:10px;">
-      <button class="email-tab active" id="ig-tab-now" onclick="switchIgTab('now')">Publicar ahora</button>
-      <button class="email-tab" id="ig-tab-sched" onclick="switchIgTab('sched')">Programar</button>
-    </div>
-    <div class="email-panel active" id="ig-panel-now">
-      <div class="form-status" id="ig-status-now"></div>
-      <button class="email-send-btn" id="btn-ig-now"
-        style="background:linear-gradient(135deg,#833ab4,#e1306c,#fd1d1d);"
-        onclick="publishIGNow()">PUBLICAR EN STORIES</button>
-    </div>
-    <div class="email-panel" id="ig-panel-sched">
-      <div class="form-field">
-        <label>Fecha y hora de publicación</label>
-        <input type="datetime-local" id="ig-sched-at">
-      </div>
-      <div class="form-status" id="ig-status-sched"></div>
-      <button class="email-send-btn" id="btn-ig-sched"
-        style="background:linear-gradient(135deg,#833ab4,#e1306c);"
-        onclick="scheduleIGPost()">PROGRAMAR PUBLICACIÓN</button>
-    </div>`;
-
-  loadIGScheduled();
-}
-
-function switchIgTab(tab) {
-  document.getElementById('ig-tab-now').classList.toggle('active', tab === 'now');
-  document.getElementById('ig-tab-sched').classList.toggle('active', tab === 'sched');
-  document.getElementById('ig-panel-now').classList.toggle('active', tab === 'now');
-  document.getElementById('ig-panel-sched').classList.toggle('active', tab === 'sched');
-}
-
-async function publishIGNow() {
-  const btn      = document.getElementById('btn-ig-now');
-  const statusEl = document.getElementById('ig-status-now');
-  btn.disabled = true; statusEl.textContent = 'Publicando...'; statusEl.className = 'form-status';
-  try {
-    const res = await api('/api/instagram/publish', {
-      method: 'POST',
-      body: JSON.stringify({ render_config: currentRenderConfig, template_name: currentTemplateName })
-    });
-    if (!res.ok) { const e = await res.json(); throw new Error(e.error); }
-    const data = await res.json();
-    statusEl.innerHTML = `✓ Publicado · <a href="${data.postUrl}" target="_blank" style="color:var(--accent-dim);">Ver en Instagram</a>`;
-    statusEl.className = 'form-status ok';
-  } catch (err) {
-    statusEl.textContent = '❌ ' + err.message; statusEl.className = 'form-status err';
-  } finally {
-    btn.disabled = false;
-  }
-}
-
-async function scheduleIGPost() {
-  const scheduledAt = document.getElementById('ig-sched-at').value;
-  const statusEl    = document.getElementById('ig-status-sched');
-  const btn         = document.getElementById('btn-ig-sched');
-  if (!scheduledAt) { statusEl.textContent = '⚠ Selecciona fecha y hora'; statusEl.className = 'form-status err'; return; }
-  if (new Date(scheduledAt) <= new Date()) { statusEl.textContent = '⚠ La fecha debe ser futura'; statusEl.className = 'form-status err'; return; }
-  btn.disabled = true; statusEl.textContent = 'Programando...'; statusEl.className = 'form-status';
-  try {
-    const res = await api('/api/instagram/schedule', {
-      method: 'POST',
-      body: JSON.stringify({ render_config: currentRenderConfig, scheduled_at: scheduledAt, template_name: currentTemplateName })
-    });
-    if (!res.ok) { const e = await res.json(); throw new Error(e.error); }
-    statusEl.textContent = '✓ Publicación programada'; statusEl.className = 'form-status ok';
-    document.getElementById('ig-sched-at').value = '';
-    loadIGScheduled();
-  } catch (err) {
-    statusEl.textContent = '❌ ' + err.message; statusEl.className = 'form-status err';
-  } finally {
-    btn.disabled = false;
-  }
-}
-
-async function loadIGScheduled() {
-  const res   = await api('/api/instagram/scheduled');
-  const items = await res.json();
-  const card  = document.getElementById('ig-scheduled-card');
-  const list  = document.getElementById('ig-scheduled-list');
-  if (!items.length) { card.style.display = 'none'; return; }
-  card.style.display = 'block';
-  list.innerHTML = '';
-  for (const item of items) {
-    const dt = new Date(item.scheduled_at).toLocaleString('es-ES', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
-    const el = document.createElement('div');
-    el.className = 'scheduled-item';
-    el.innerHTML = `
-      <div class="scheduled-item-info">
-        <strong>${item.template_name || 'Story'}</strong><br>${dt}
-      </div>
-      <button class="scheduled-cancel" title="Cancelar" onclick="cancelIGScheduled(${item.id}, this)">×</button>`;
-    list.appendChild(el);
-  }
-}
-
-async function cancelIGScheduled(id, btn) {
-  btn.disabled = true;
-  await api(`/api/instagram/scheduled/${id}`, { method: 'DELETE' });
-  loadIGScheduled();
-}
-
-// Feedback del callback OAuth
-(function checkOAuthResult() {
-  const p = new URLSearchParams(location.search);
-  if (p.get('ig_connected')) {
-    const user = p.get('ig_username') || '';
-    const toast = document.createElement('div');
-    toast.style.cssText = 'position:fixed;top:70px;right:20px;z-index:999;background:#1a2547;border:1px solid var(--accent-dim);color:var(--accent-dim);padding:10px 16px;border-radius:8px;font-size:13px;font-family:Manrope,sans-serif;box-shadow:0 4px 16px rgba(0,0,0,0.4);';
-    toast.textContent = `✓ Instagram conectado: @${user}`;
-    document.body.appendChild(toast);
-    setTimeout(() => toast.remove(), 4000);
-    history.replaceState({}, '', '/templates.html');
-  }
-  if (p.get('ig_error')) {
-    const toast = document.createElement('div');
-    toast.style.cssText = 'position:fixed;top:70px;right:20px;z-index:999;background:#1a2547;border:1px solid var(--error);color:var(--error);padding:10px 16px;border-radius:8px;font-size:13px;font-family:Manrope,sans-serif;box-shadow:0 4px 16px rgba(0,0,0,0.4);';
-    toast.textContent = `❌ Error IG: ${p.get('ig_error')}`;
-    document.body.appendChild(toast);
-    setTimeout(() => toast.remove(), 6000);
-    history.replaceState({}, '', '/templates.html');
-  }
-})();
 
 // ===== EMAIL =====
-let currentRenderConfig = null;
-let currentTemplateName = '';
-
-function switchEmailTab(tab) {
-  document.getElementById('tab-now').classList.toggle('active', tab === 'now');
-  document.getElementById('tab-schedule').classList.toggle('active', tab === 'schedule');
-  document.getElementById('panel-now').classList.toggle('active', tab === 'now');
-  document.getElementById('panel-schedule').classList.toggle('active', tab === 'schedule');
-}
-
-function showEmailSection(renderConfig, templateName) {
-  currentRenderConfig = renderConfig;
-  currentTemplateName = templateName;
-  document.getElementById('email-subject').value = templateName;
-  document.getElementById('email-section').style.display = 'block';
-  loadScheduledEmails();
+function switchPtab(section, tab) {
+  const prefix = section === 'email' ? 'e' : 'ig';
+  ['now','sched'].forEach(t => {
+    document.getElementById(`${prefix}tab-${t}`)?.classList.toggle('active', t === tab);
+    document.getElementById(`${prefix}panel-${t}`)?.classList.toggle('active', t === tab);
+  });
+  if (section === 'email' && tab === 'sched') loadScheduledEmails();
+  if (section === 'ig'    && tab === 'sched') loadScheduledPosts();
 }
 
 async function sendEmailNow() {
   const to = document.getElementById('email-to').value.trim();
   const subject = document.getElementById('email-subject').value.trim();
-  const statusEl = document.getElementById('email-status-now');
-  const btn = document.getElementById('btn-send-now');
-  if (!to) { statusEl.textContent = '⚠ Escribe un correo destinatario'; statusEl.className = 'form-status err'; return; }
-  btn.disabled = true; statusEl.textContent = 'Enviando...'; statusEl.className = 'form-status';
+  const sEl = document.getElementById('email-status-now');
+  if (!to) { sEl.textContent = '⚠ Escribe un destinatario'; sEl.className = 'form-status err'; return; }
+  sEl.textContent = 'Enviando...'; sEl.className = 'form-status';
   try {
-    const res = await api('/api/send-email', { method: 'POST', body: JSON.stringify({
-      render_config: currentRenderConfig, email_to: to, subject, template_name: currentTemplateName
-    })});
+    const res = await api('/api/distribute/email', { method:'POST', body: JSON.stringify({ pages: buildRenderConfigs(), email_to: to, subject: subject || 'Menú' }) });
     if (!res.ok) { const e = await res.json(); throw new Error(e.error); }
-    statusEl.textContent = '✓ Email enviado correctamente'; statusEl.className = 'form-status ok';
-  } catch (err) {
-    statusEl.textContent = '❌ ' + err.message; statusEl.className = 'form-status err';
-  } finally {
-    btn.disabled = false;
-  }
+    sEl.textContent = '✓ Email enviado'; sEl.className = 'form-status ok';
+  } catch (err) { sEl.textContent = '❌ ' + err.message; sEl.className = 'form-status err'; }
 }
 
 async function scheduleEmail() {
   const to = document.getElementById('email-to').value.trim();
   const subject = document.getElementById('email-subject').value.trim();
   const sendAt = document.getElementById('email-send-at').value;
-  const statusEl = document.getElementById('email-status-schedule');
-  const btn = document.getElementById('btn-schedule');
-  if (!to) { statusEl.textContent = '⚠ Escribe un correo destinatario'; statusEl.className = 'form-status err'; return; }
-  if (!sendAt) { statusEl.textContent = '⚠ Selecciona fecha y hora'; statusEl.className = 'form-status err'; return; }
-  if (new Date(sendAt) <= new Date()) { statusEl.textContent = '⚠ La fecha debe ser futura'; statusEl.className = 'form-status err'; return; }
-  btn.disabled = true; statusEl.textContent = 'Programando...'; statusEl.className = 'form-status';
+  const sEl = document.getElementById('email-status-sched');
+  if (!to) { sEl.textContent = '⚠ Escribe un destinatario'; sEl.className = 'form-status err'; return; }
+  if (!sendAt || new Date(sendAt) <= new Date()) { sEl.textContent = '⚠ Fecha futura requerida'; sEl.className = 'form-status err'; return; }
+  sEl.textContent = 'Programando...'; sEl.className = 'form-status';
   try {
-    const res = await api('/api/schedule-email', { method: 'POST', body: JSON.stringify({
-      render_config: currentRenderConfig, email_to: to, subject, send_at: sendAt, template_name: currentTemplateName
-    })});
+    const res = await api('/api/distribute/email/schedule', { method:'POST', body: JSON.stringify({ pages: buildRenderConfigs(), email_to: to, subject: subject || 'Menú', send_at: sendAt }) });
     if (!res.ok) { const e = await res.json(); throw new Error(e.error); }
-    statusEl.textContent = '✓ Envío programado'; statusEl.className = 'form-status ok';
+    sEl.textContent = '✓ Programado'; sEl.className = 'form-status ok';
     document.getElementById('email-send-at').value = '';
     loadScheduledEmails();
-  } catch (err) {
-    statusEl.textContent = '❌ ' + err.message; statusEl.className = 'form-status err';
-  } finally {
-    btn.disabled = false;
-  }
+  } catch (err) { sEl.textContent = '❌ ' + err.message; sEl.className = 'form-status err'; }
 }
 
 async function loadScheduledEmails() {
   const res = await api('/api/scheduled-emails');
   const items = await res.json();
-  const card = document.getElementById('scheduled-card');
-  const list = document.getElementById('scheduled-list');
-  if (!items.length) { card.style.display = 'none'; return; }
-  card.style.display = 'block';
-  list.innerHTML = '';
-  for (const item of items) {
-    const dt = new Date(item.send_at).toLocaleString('es-ES', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
-    const el = document.createElement('div');
-    el.className = 'scheduled-item';
-    el.innerHTML = `
-      <div class="scheduled-item-info">
-        <strong>${item.template_name || 'Menú'}</strong><br>
-        Para: ${item.email_to} · ${dt}
+  const el = document.getElementById('email-sched-list');
+  if (!items.length) { el.innerHTML = ''; return; }
+  el.innerHTML = `<div class="sched-list">${items.map(i => {
+    const dt = new Date(i.send_at).toLocaleString('es-ES',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
+    return `<div class="sched-item"><div class="sched-item-info"><strong>${i.email_to}</strong><br>${dt}</div><button class="sched-cancel" onclick="cancelEmail(${i.id},this)">×</button></div>`;
+  }).join('')}</div>`;
+}
+async function cancelEmail(id, btn) { btn.disabled = true; await api(`/api/scheduled-emails/${id}`, { method:'DELETE' }); loadScheduledEmails(); }
+
+// ===== INSTAGRAM DIST =====
+function renderIGDist() {
+  const body = document.getElementById('ig-dist-body');
+  if (!igStatus.connected) {
+    body.innerHTML = `<p style="font-size:12px;color:var(--dim);margin-bottom:14px;">Conecta tu cuenta desde <a href="#" onclick="closeSettings();openSettings();return false;" style="color:var(--accent-dim);">Ajustes → Conexiones</a>.</p>`;
+    return;
+  }
+  body.innerHTML = `
+    <p style="font-size:12px;color:var(--dim);margin-bottom:12px;">Cuenta: <strong style="color:var(--accent-dim);">@${igStatus.username}</strong></p>
+    <div class="ptabs">
+      <button class="ptab active" id="igtab-now"  onclick="switchPtab('ig','now')">Publicar ahora</button>
+      <button class="ptab"        id="igtab-sched" onclick="switchPtab('ig','sched')">Programar</button>
+    </div>
+    <div class="ppanel active" id="igpanel-now">
+      <div class="form-status" id="ig-status-now"></div>
+      <button class="btn ig full" onclick="publishIGNow()">PUBLICAR EN STORIES</button>
+    </div>
+    <div class="ppanel" id="igpanel-sched">
+      <div class="field"><label>Fecha y hora</label><input type="datetime-local" id="ig-sched-at"></div>
+      <div class="form-status" id="ig-status-sched"></div>
+      <button class="btn ig full" onclick="scheduleIG()">PROGRAMAR PUBLICACIÓN</button>
+      <div id="ig-sched-list"></div>
+    </div>`;
+}
+
+async function publishIGNow() {
+  const sEl = document.getElementById('ig-status-now');
+  sEl.textContent = 'Publicando...'; sEl.className = 'form-status';
+  try {
+    const res = await api('/api/distribute/ig', { method:'POST', body: JSON.stringify({ pages: buildRenderConfigs() }) });
+    if (!res.ok) { const e = await res.json(); throw new Error(e.error); }
+    const data = await res.json();
+    sEl.innerHTML = data.postUrl ? `✓ Publicado · <a href="${data.postUrl}" target="_blank" style="color:var(--accent-dim);">Ver</a>` : '✓ Publicado';
+    sEl.className = 'form-status ok';
+  } catch (err) { sEl.textContent = '❌ ' + err.message; sEl.className = 'form-status err'; }
+}
+
+async function scheduleIG() {
+  const at = document.getElementById('ig-sched-at').value;
+  const sEl = document.getElementById('ig-status-sched');
+  if (!at || new Date(at) <= new Date()) { sEl.textContent = '⚠ Fecha futura requerida'; sEl.className = 'form-status err'; return; }
+  sEl.textContent = 'Programando...'; sEl.className = 'form-status';
+  try {
+    const res = await api('/api/distribute/ig/schedule', { method:'POST', body: JSON.stringify({ pages: buildRenderConfigs(), scheduled_at: at }) });
+    if (!res.ok) { const e = await res.json(); throw new Error(e.error); }
+    sEl.textContent = '✓ Programado'; sEl.className = 'form-status ok';
+    document.getElementById('ig-sched-at').value = '';
+    loadScheduledPosts();
+  } catch (err) { sEl.textContent = '❌ ' + err.message; sEl.className = 'form-status err'; }
+}
+
+async function loadScheduledPosts() {
+  const res = await api('/api/instagram/scheduled');
+  const items = await res.json();
+  const el = document.getElementById('ig-sched-list');
+  if (!items.length) { el.innerHTML = ''; return; }
+  el.innerHTML = `<div class="sched-list">${items.map(i => {
+    const dt = new Date(i.scheduled_at).toLocaleString('es-ES',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
+    return `<div class="sched-item"><div class="sched-item-info"><strong>${i.template_name||'Story'}</strong><br>${dt}</div><button class="sched-cancel" onclick="cancelPost(${i.id},this)">×</button></div>`;
+  }).join('')}</div>`;
+}
+async function cancelPost(id, btn) { btn.disabled = true; await api(`/api/instagram/scheduled/${id}`, { method:'DELETE' }); loadScheduledPosts(); }
+
+// ===== LINK DIST =====
+function renderLinkDist() {
+  const body = document.getElementById('link-dist-body');
+  if (!userLinks.length) {
+    body.innerHTML = `<p style="font-size:12px;color:var(--dim);">No tienes links públicos. <a href="#" onclick="closeSettings();openSettings();return false;" style="color:var(--accent-dim);">Créalos en Ajustes →</a></p>`;
+    return;
+  }
+  body.innerHTML = `<p style="font-size:12px;color:var(--dim);margin-bottom:14px;">Selecciona a qué link publicar. El contenido anterior se reemplaza.</p>`;
+  for (const link of userLinks) {
+    const pubUrl = `${location.origin}/p/${link.slug}`;
+    const item = document.createElement('div');
+    item.className = 'link-dist-item';
+    const lastPub = link.last_published_at ? 'Actualizado ' + new Date(link.last_published_at).toLocaleDateString('es-ES',{day:'2-digit',month:'short'}) : 'Sin publicar';
+    item.innerHTML = `
+      <div class="link-dist-info">
+        <div class="link-dist-name">${link.name}</div>
+        <div class="link-dist-url">${pubUrl} · ${lastPub}</div>
+        <div class="form-status" id="link-status-${link.id}"></div>
       </div>
-      <button class="scheduled-cancel" title="Cancelar" onclick="cancelScheduled(${item.id}, this)">×</button>`;
-    list.appendChild(el);
+      <button class="btn green sm" onclick="publishToLink(${link.id})">Publicar</button>`;
+    body.appendChild(item);
   }
 }
 
-async function cancelScheduled(id, btn) {
-  btn.disabled = true;
-  await api(`/api/scheduled-emails/${id}`, { method: 'DELETE' });
-  loadScheduledEmails();
+async function publishToLink(linkId) {
+  const sEl = document.getElementById(`link-status-${linkId}`);
+  sEl.textContent = 'Publicando...'; sEl.className = 'form-status';
+  try {
+    const res = await api(`/api/links/${linkId}/publish`, { method:'POST', body: JSON.stringify({ pages: buildRenderConfigs() }) });
+    if (!res.ok) { const e = await res.json(); throw new Error(e.error); }
+    const data = await res.json();
+    sEl.innerHTML = `✓ Publicado · <a href="${data.url}" target="_blank" style="color:var(--accent-dim);">Ver link</a>`;
+    sEl.className = 'form-status ok';
+    loadLinks();
+  } catch (err) { sEl.textContent = '❌ ' + err.message; sEl.className = 'form-status err'; }
+}
+
+// ===== SETTINGS: INSTAGRAM =====
+async function loadIgStatus() {
+  try {
+    const res = await api('/api/instagram/status');
+    igStatus  = await res.json();
+  } catch (_) {}
+  renderSettingsIG();
+}
+
+function renderSettingsIG() {
+  const body = document.getElementById('s-ig-body');
+  if (!body) return;
+  if (igStatus.connected) {
+    body.innerHTML = `
+      <p style="font-size:13px;margin-bottom:12px;">Conectado como <strong style="color:var(--accent-dim);">@${igStatus.username}</strong></p>
+      <button class="btn ghost sm" onclick="disconnectIG()">Desconectar</button>`;
+  } else {
+    body.innerHTML = `
+      <p style="font-size:12px;color:var(--dim);margin-bottom:12px;">Conecta tu cuenta para publicar Stories directamente.</p>
+      <button class="btn ig sm" onclick="connectIG()">Conectar Instagram</button>`;
+  }
+}
+
+function connectIG() { window.location.href = '/api/instagram/connect'; }
+async function disconnectIG() {
+  if (!confirm('¿Desconectar Instagram?')) return;
+  await api('/api/instagram/disconnect', { method:'DELETE' });
+  igStatus = { connected: false };
+  renderSettingsIG();
+  renderIGDist();
+}
+
+// OAuth feedback
+(function checkOAuthResult() {
+  const p = new URLSearchParams(location.search);
+  if (p.get('ig_connected')) { showToast(`✓ Instagram conectado: @${p.get('ig_username')||''}`, 'ok'); history.replaceState({},'',' /templates.html'); }
+  if (p.get('ig_error'))     { showToast(`❌ Error IG: ${p.get('ig_error')}`, 'err');                  history.replaceState({},'','/templates.html'); }
+})();
+
+// ===== SETTINGS: CUENTA =====
+async function changePassword() {
+  const cur = document.getElementById('s-pass-cur').value;
+  const nw  = document.getElementById('s-pass-new').value;
+  const sEl = document.getElementById('s-pass-status');
+  if (!cur || !nw) { sEl.textContent = '⚠ Rellena ambos campos'; sEl.className = 'form-status err'; return; }
+  sEl.textContent = 'Guardando...'; sEl.className = 'form-status';
+  try {
+    const res = await api('/api/me/password', { method:'PUT', body: JSON.stringify({ current: cur, newPassword: nw }) });
+    if (!res.ok) { const e = await res.json(); throw new Error(e.error); }
+    sEl.textContent = '✓ Contraseña actualizada'; sEl.className = 'form-status ok';
+    document.getElementById('s-pass-cur').value = '';
+    document.getElementById('s-pass-new').value = '';
+  } catch (err) { sEl.textContent = '❌ ' + err.message; sEl.className = 'form-status err'; }
+}
+
+// ===== SETTINGS: LINKS =====
+async function loadLinks() {
+  const res = await api('/api/links');
+  userLinks = await res.json();
+  renderSettingsLinks();
+  if (document.getElementById('link-dist-body')) renderLinkDist();
+}
+
+function renderSettingsLinks() {
+  const list = document.getElementById('s-links-list');
+  const createBtn = document.getElementById('s-btn-create-link');
+  if (!list) return;
+  list.innerHTML = '';
+
+  for (const link of userLinks) {
+    const pubUrl = `${location.origin}/p/${link.slug}`;
+    const card = document.createElement('div');
+    card.className = 'link-settings-card';
+    card.innerHTML = `
+      <div class="link-settings-row">
+        <input class="link-settings-name" value="${link.name}" data-id="${link.id}" spellcheck="false">
+        <button class="icon-btn" title="Copiar link" onclick="copyLink('${pubUrl}')">⎘</button>
+        <button class="icon-btn del" title="Eliminar" onclick="deleteLink(${link.id})">✕</button>
+      </div>
+      <div class="link-settings-url">${pubUrl}${link.last_published_at ? ' · act. ' + new Date(link.last_published_at).toLocaleDateString('es-ES',{day:'2-digit',month:'short'}) : ' · sin publicar'}</div>
+      <div style="margin-top:10px;">
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--accent-dim);margin-bottom:6px;">Dominio personalizado</div>
+        <div class="link-settings-domain">
+          <input type="text" placeholder="menu.turestaurante.com" value="${link.custom_domain || ''}" data-link-id="${link.id}" id="domain-input-${link.id}">
+          <button class="btn ghost sm" onclick="saveDomain(${link.id})">Guardar</button>
+        </div>
+        <div class="domain-hint">Añade un registro CNAME en tu DNS:<br><code>${link.slug}.cname</code> → <code>${location.hostname}</code><br>O un registro A apuntando a la IP del servidor.</div>
+        <div class="form-status" id="domain-status-${link.id}" style="margin-top:6px;"></div>
+      </div>`;
+    const nameInput = card.querySelector('.link-settings-name');
+    nameInput.addEventListener('blur', async () => {
+      const newName = nameInput.value.trim();
+      if (newName && newName !== link.name) {
+        await api(`/api/links/${link.id}`, { method:'PUT', body: JSON.stringify({ name: newName }) });
+        link.name = newName;
+        renderLinkDist();
+      }
+    });
+    nameInput.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); nameInput.blur(); } });
+    list.appendChild(card);
+  }
+
+  if (createBtn) {
+    createBtn.disabled = userLinks.length >= 3;
+    createBtn.textContent = userLinks.length >= 3 ? 'Límite de 3 links alcanzado' : '+ Crear link público';
+  }
+}
+
+async function saveDomain(linkId) {
+  const input = document.getElementById(`domain-input-${linkId}`);
+  const sEl   = document.getElementById(`domain-status-${linkId}`);
+  const domain = input.value.trim().toLowerCase().replace(/^https?:\/\//, '');
+  sEl.textContent = 'Guardando...'; sEl.className = 'form-status';
+  try {
+    const res = await api(`/api/links/${linkId}`, { method:'PUT', body: JSON.stringify({ custom_domain: domain || null }) });
+    if (!res.ok) { const e = await res.json(); throw new Error(e.error); }
+    sEl.textContent = domain ? `✓ Dominio guardado: ${domain}` : '✓ Dominio eliminado';
+    sEl.className = 'form-status ok';
+    const link = userLinks.find(l => l.id === linkId);
+    if (link) link.custom_domain = domain || null;
+  } catch (err) { sEl.textContent = '❌ ' + err.message; sEl.className = 'form-status err'; }
+}
+
+async function createLink() {
+  const name = prompt('Nombre del link (ej: Carta del día)');
+  if (!name) return;
+  const res = await api('/api/links', { method:'POST', body: JSON.stringify({ name }) });
+  if (!res.ok) { const e = await res.json(); showToast('❌ ' + e.error, 'err'); return; }
+  await loadLinks();
+  showToast('✓ Link creado', 'ok');
+}
+
+async function deleteLink(id) {
+  if (!confirm('¿Eliminar este link? Se borrará el contenido publicado.')) return;
+  await api(`/api/links/${id}`, { method:'DELETE' });
+  await loadLinks();
+}
+
+function copyLink(url) { navigator.clipboard.writeText(url).then(() => showToast('✓ Link copiado', 'ok')); }
+
+// ===== PICKER =====
+function openPicker() {
+  const list = document.getElementById('picker-list');
+  list.innerHTML = '';
+  if (!templates.length) {
+    list.innerHTML = `<p style="text-align:center;color:var(--dim);padding:24px 0;font-size:14px;">No tienes plantillas.<br><a href="/editor.html" style="color:var(--accent-dim);">Crear una ahora</a></p>`;
+  } else {
+    for (const t of templates) {
+      const date = new Date(t.updated_at).toLocaleDateString('es-ES',{day:'2-digit',month:'short'});
+      const item = document.createElement('div');
+      item.className = 'picker-item';
+      item.innerHTML = `<div><div class="picker-item-name">${t.name}</div><div class="picker-item-date">Actualizada ${date}</div></div><button class="picker-item-add">+</button>`;
+      item.querySelector('.picker-item-add').addEventListener('click', async () => { closePicker(); await addPageFromTemplate(t.id); });
+      list.appendChild(item);
+    }
+  }
+  document.getElementById('picker-overlay').style.display = 'block';
+  document.getElementById('picker-sheet').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closePicker() {
+  document.getElementById('picker-overlay').style.display = 'none';
+  document.getElementById('picker-sheet').classList.remove('open');
+  document.body.style.overflow = '';
 }
 
 // ===== UTILS =====
-function makeCard(title) {
-  const card = document.createElement('div');
-  card.className = 'form-card';
-  if (title) {
-    const t = document.createElement('div');
-    t.className = 'form-card-title'; t.textContent = title;
-    card.appendChild(t);
-  }
-  return card;
-}
-function field(label, inputHtml) {
-  const d = document.createElement('div');
-  d.className = 'form-field';
-  d.innerHTML = `<label>${label}</label>${inputHtml}`;
-  return d;
-}
 function toB64(file) {
-  return new Promise(r => {
-    const fr = new FileReader();
-    fr.onload = e => r(e.target.result.split(',')[1]);
-    fr.readAsDataURL(file);
-  });
+  return new Promise(r => { const fr = new FileReader(); fr.onload = e => r(e.target.result.split(',')[1]); fr.readAsDataURL(file); });
+}
+function showToast(msg, type) {
+  const toast = document.createElement('div');
+  const c = type === 'ok' ? 'var(--accent-dim)' : 'var(--error)';
+  toast.style.cssText = `position:fixed;top:70px;right:20px;z-index:999;background:var(--s1);border:1px solid ${c};color:${c};padding:10px 16px;border-radius:8px;font-size:13px;font-family:Manrope,sans-serif;box-shadow:0 4px 16px rgba(0,0,0,0.4);max-width:280px;word-break:break-word;`;
+  toast.textContent = msg; document.body.appendChild(toast); setTimeout(() => toast.remove(), 4500);
 }
 
+// ===== INIT =====
 loadTemplates();
 loadIgStatus();
+loadLinks();
+switchTab('generar');
 </script>
 </body>
 </html>

@@ -16,6 +16,11 @@ const TEMP_DIR = path.join(__dirname, "temp");
 if (!fs.existsSync(TEMP_DIR)) fs.mkdirSync(TEMP_DIR);
 app.use("/temp", express.static(TEMP_DIR));
 
+// Carpeta para páginas de links públicos
+const PUBLIC_PAGES_DIR = path.join(__dirname, "public_pages");
+if (!fs.existsSync(PUBLIC_PAGES_DIR)) fs.mkdirSync(PUBLIC_PAGES_DIR);
+app.use("/public_pages", express.static(PUBLIC_PAGES_DIR));
+
 // ===== NODEMAILER =====
 const transporter = nodemailer.createTransport({
   host:   process.env.SMTP_HOST,
@@ -35,6 +40,20 @@ async function sendEmailWithPng(to, subject, pngBuffer, templateName) {
 }
 
 app.use(express.json({ limit: "20mb" }));
+
+// ===== CUSTOM DOMAIN MIDDLEWARE =====
+// Must run before static so custom domains are caught first
+app.use(async (req, res, next) => {
+  const host = req.hostname;
+  const appHost = (() => { try { return new URL(process.env.APP_BASE_URL || "http://localhost").hostname; } catch { return "localhost"; } })();
+  if (host === appHost || host === "localhost" || host === "127.0.0.1") return next();
+  try {
+    const [rows] = await pool.execute("SELECT * FROM public_links WHERE custom_domain = ?", [host]);
+    if (!rows.length) return next();
+    return res.setHeader("Content-Type", "text/html; charset=utf-8").send(buildViewerHTML(rows[0]));
+  } catch { return next(); }
+});
+
 app.use(express.static(path.join(__dirname)));
 
 // Root → login
@@ -69,6 +88,22 @@ app.post("/api/login", async (req, res) => {
 
   const token = jwt.sign({ id: rows[0].id, username: rows[0].username }, JWT_SECRET, { expiresIn: "7d" });
   res.json({ token, username: rows[0].username });
+});
+
+// ===== CUENTA =====
+app.get("/api/me", auth, async (req, res) => {
+  const [rows] = await pool.execute("SELECT id, username, created_at FROM users WHERE id=?", [req.user.id]);
+  res.json(rows[0]);
+});
+
+app.put("/api/me/password", auth, async (req, res) => {
+  const { current, newPassword } = req.body;
+  if (!current || !newPassword) return res.status(400).json({ error: "Faltan datos" });
+  if (newPassword.length < 6) return res.status(400).json({ error: "Mínimo 6 caracteres" });
+  const [rows] = await pool.execute("SELECT id FROM users WHERE id=? AND password=?", [req.user.id, current]);
+  if (!rows.length) return res.status(401).json({ error: "Contraseña actual incorrecta" });
+  await pool.execute("UPDATE users SET password=? WHERE id=?", [newPassword, req.user.id]);
+  res.json({ ok: true });
 });
 
 // ===== TEMPLATES =====
@@ -187,8 +222,17 @@ async function checkAndSendScheduled() {
     for (const row of pending) {
       try {
         const config = JSON.parse(row.render_config);
-        const pngBuffer = await renderMenu(config);
-        await sendEmailWithPng(row.email_to, row.subject, pngBuffer, row.template_name);
+        if (Array.isArray(config)) {
+          const attachments = [];
+          for (let i = 0; i < config.length; i++) {
+            const buf = await renderMenu({ ...config[i], output_format: "jpg" });
+            attachments.push({ filename: `menu-${String(i + 1).padStart(2, "0")}.jpg`, content: buf, contentType: "image/jpeg" });
+          }
+          await transporter.sendMail({ from: process.env.SMTP_FROM, to: row.email_to, subject: row.subject, html: `<p>Adjunto encontrarás el menú: <strong>${row.template_name}</strong></p>`, attachments });
+        } else {
+          const pngBuffer = await renderMenu(config);
+          await sendEmailWithPng(row.email_to, row.subject, pngBuffer, row.template_name);
+        }
         await pool.execute("UPDATE scheduled_emails SET status = 'sent' WHERE id = ?", [row.id]);
         console.log(`✉ Email programado enviado → ${row.email_to} (id=${row.id})`);
       } catch (err) {
@@ -329,17 +373,22 @@ async function checkAndPublishScheduled() {
     );
     for (const row of pending) {
       try {
-        const config   = JSON.parse(row.render_config);
-        const pngBuf   = await renderMenu(config);
-        const filename = `${crypto.randomUUID()}.png`;
-        const filepath = path.join(TEMP_DIR, filename);
-        fs.writeFileSync(filepath, pngBuf);
-        const imageUrl = `${process.env.APP_BASE_URL}/temp/${filename}`;
-        const { mediaId, postUrl } = await ig.publishStory(row.instagram_id, row.instagram_access_token, imageUrl);
-        ig.cleanupTempFile(filepath);
+        const config = JSON.parse(row.render_config);
+        const pages  = Array.isArray(config) ? config : [config];
+        let lastMediaId, lastPostUrl;
+        for (const page of pages) {
+          const pngBuf   = await renderMenu(page);
+          const filename = `${crypto.randomUUID()}.png`;
+          const filepath = path.join(TEMP_DIR, filename);
+          fs.writeFileSync(filepath, pngBuf);
+          const imageUrl = `${process.env.APP_BASE_URL}/temp/${filename}`;
+          const { mediaId, postUrl } = await ig.publishStory(row.instagram_id, row.instagram_access_token, imageUrl);
+          ig.cleanupTempFile(filepath);
+          lastMediaId = mediaId; lastPostUrl = postUrl;
+        }
         await pool.execute(
           "UPDATE scheduled_posts SET status='published', ig_media_id=?, ig_post_url=? WHERE id=?",
-          [mediaId, postUrl, row.id]
+          [lastMediaId, lastPostUrl, row.id]
         );
         console.log(`📸 Post IG publicado → ${row.ig_username || row.user_id} (id=${row.id})`);
       } catch (err) {
@@ -353,6 +402,227 @@ async function checkAndPublishScheduled() {
   } catch (err) {
     console.error("❌ Error en scheduler IG:", err.message);
   }
+}
+
+// ===== EXPORT (PDF / JPG ZIP) =====
+const EXPORT_DIMS = { story: { w: 1080, h: 1920 }, folio: { w: 2480, h: 3508 } };
+
+app.post("/api/export", auth, async (req, res) => {
+  const { pages, format } = req.body;
+  if (!Array.isArray(pages) || !pages.length) return res.status(400).json({ error: "Faltan páginas" });
+
+  try {
+    if (format === "pdf") {
+      const PDFDocument = require("pdfkit");
+      const doc = new PDFDocument({ autoFirstPage: false, compress: true });
+      res.setHeader("Content-Type", "application/pdf");
+      res.setHeader("Content-Disposition", `attachment; filename="menu.pdf"`);
+      doc.pipe(res);
+      for (const page of pages) {
+        const pngBuf = await renderMenu(page);
+        const dim = EXPORT_DIMS[page.formato] || EXPORT_DIMS.story;
+        doc.addPage({ size: [dim.w, dim.h], margin: 0 });
+        doc.image(pngBuf, 0, 0, { width: dim.w, height: dim.h });
+      }
+      doc.end();
+    } else {
+      const archiver = require("archiver");
+      res.setHeader("Content-Type", "application/zip");
+      res.setHeader("Content-Disposition", `attachment; filename="menus.zip"`);
+      const archive = archiver("zip", { zlib: { level: 6 } });
+      archive.pipe(res);
+      for (let i = 0; i < pages.length; i++) {
+        const jpgBuf = await renderMenu({ ...pages[i], output_format: "jpg" });
+        archive.append(jpgBuf, { name: `menu-${String(i + 1).padStart(2, "0")}.jpg` });
+      }
+      await archive.finalize();
+    }
+  } catch (err) {
+    console.error("❌ EXPORT ERROR:", err);
+    if (!res.headersSent) res.status(500).json({ error: err.message });
+  }
+});
+
+// ===== DISTRIBUTE: EMAIL =====
+app.post("/api/distribute/email", auth, async (req, res) => {
+  const { pages, email_to, subject, template_name } = req.body;
+  if (!Array.isArray(pages) || !pages.length || !email_to)
+    return res.status(400).json({ error: "Faltan datos" });
+  try {
+    const attachments = [];
+    for (let i = 0; i < pages.length; i++) {
+      const buf = await renderMenu({ ...pages[i], output_format: "jpg" });
+      attachments.push({ filename: `menu-${String(i + 1).padStart(2, "0")}.jpg`, content: buf, contentType: "image/jpeg" });
+    }
+    await transporter.sendMail({
+      from: process.env.SMTP_FROM, to: email_to,
+      subject: subject || "Menú",
+      html: `<p>Adjunto encontrarás el menú: <strong>${template_name || ""}</strong></p>`,
+      attachments,
+    });
+    res.json({ ok: true });
+  } catch (err) {
+    console.error("❌ DISTRIBUTE EMAIL:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post("/api/distribute/email/schedule", auth, async (req, res) => {
+  const { pages, email_to, subject, send_at, template_name } = req.body;
+  if (!Array.isArray(pages) || !pages.length || !email_to || !send_at)
+    return res.status(400).json({ error: "Faltan datos" });
+  const [result] = await pool.execute(
+    "INSERT INTO scheduled_emails (user_id, template_name, email_to, subject, send_at, render_config) VALUES (?,?,?,?,?,?)",
+    [req.user.id, template_name || "", email_to, subject || "Menú", new Date(send_at), JSON.stringify(pages)]
+  );
+  res.json({ ok: true, id: result.insertId });
+});
+
+// ===== DISTRIBUTE: INSTAGRAM =====
+app.post("/api/distribute/ig", auth, async (req, res) => {
+  const { pages } = req.body;
+  if (!Array.isArray(pages) || !pages.length) return res.status(400).json({ error: "Faltan páginas" });
+  const [rows] = await pool.execute("SELECT instagram_id, instagram_access_token FROM users WHERE id=?", [req.user.id]);
+  const u = rows[0];
+  if (!u.instagram_id) return res.status(400).json({ error: "Instagram no conectado" });
+  try {
+    let lastPostUrl;
+    for (const page of pages) {
+      const pngBuf   = await renderMenu(page);
+      const filename = `${crypto.randomUUID()}.png`;
+      const filepath = path.join(TEMP_DIR, filename);
+      fs.writeFileSync(filepath, pngBuf);
+      const imageUrl = `${process.env.APP_BASE_URL}/temp/${filename}`;
+      const result   = await ig.publishStory(u.instagram_id, u.instagram_access_token, imageUrl);
+      ig.cleanupTempFile(filepath);
+      lastPostUrl = result.postUrl;
+    }
+    res.json({ ok: true, postUrl: lastPostUrl });
+  } catch (err) {
+    console.error("❌ DISTRIBUTE IG:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post("/api/distribute/ig/schedule", auth, async (req, res) => {
+  const { pages, scheduled_at, template_name } = req.body;
+  if (!Array.isArray(pages) || !pages.length || !scheduled_at) return res.status(400).json({ error: "Faltan datos" });
+  const [rows] = await pool.execute("SELECT instagram_id FROM users WHERE id=?", [req.user.id]);
+  if (!rows[0].instagram_id) return res.status(400).json({ error: "Instagram no conectado" });
+  const [result] = await pool.execute(
+    "INSERT INTO scheduled_posts (user_id, template_name, scheduled_at, render_config) VALUES (?,?,?,?)",
+    [req.user.id, template_name || "", new Date(scheduled_at), JSON.stringify(pages)]
+  );
+  res.json({ ok: true, id: result.insertId });
+});
+
+// ===== PUBLIC LINKS =====
+app.get("/api/links", auth, async (req, res) => {
+  const [rows] = await pool.execute(
+    "SELECT id, name, slug, page_count, last_published_at FROM public_links WHERE user_id=? ORDER BY created_at ASC",
+    [req.user.id]
+  );
+  res.json(rows);
+});
+
+app.post("/api/links", auth, async (req, res) => {
+  const [count] = await pool.execute("SELECT COUNT(*) as c FROM public_links WHERE user_id=?", [req.user.id]);
+  if (count[0].c >= 3) return res.status(400).json({ error: "Máximo 3 links públicos" });
+  const name = (req.body.name || "Mi Menú").slice(0, 80);
+  const slug = require("crypto").randomBytes(5).toString("hex"); // 10 chars
+  await pool.execute("INSERT INTO public_links (user_id, name, slug) VALUES (?,?,?)", [req.user.id, name, slug]);
+  res.json({ ok: true, slug, name });
+});
+
+app.put("/api/links/:id", auth, async (req, res) => {
+  const fields = [];
+  const vals   = [];
+  if (req.body.name !== undefined)          { fields.push("name=?");          vals.push(String(req.body.name).slice(0, 80)); }
+  if (req.body.custom_domain !== undefined) { fields.push("custom_domain=?"); vals.push(req.body.custom_domain ? String(req.body.custom_domain).toLowerCase().trim() : null); }
+  if (!fields.length) return res.json({ ok: true });
+  vals.push(req.params.id, req.user.id);
+  await pool.execute(`UPDATE public_links SET ${fields.join(",")} WHERE id=? AND user_id=?`, vals);
+  res.json({ ok: true });
+});
+
+app.delete("/api/links/:id", auth, async (req, res) => {
+  const [rows] = await pool.execute("SELECT slug FROM public_links WHERE id=? AND user_id=?", [req.params.id, req.user.id]);
+  if (rows.length) {
+    const dir = path.join(PUBLIC_PAGES_DIR, rows[0].slug);
+    if (fs.existsSync(dir)) fs.rmSync(dir, { recursive: true });
+  }
+  await pool.execute("DELETE FROM public_links WHERE id=? AND user_id=?", [req.params.id, req.user.id]);
+  res.json({ ok: true });
+});
+
+app.post("/api/links/:id/publish", auth, async (req, res) => {
+  const { pages } = req.body;
+  if (!Array.isArray(pages) || !pages.length) return res.status(400).json({ error: "Faltan páginas" });
+  const [rows] = await pool.execute("SELECT * FROM public_links WHERE id=? AND user_id=?", [req.params.id, req.user.id]);
+  if (!rows.length) return res.status(404).json({ error: "Link no encontrado" });
+  const link = rows[0];
+  const dir  = path.join(PUBLIC_PAGES_DIR, link.slug);
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+  // Borrar páginas anteriores
+  fs.readdirSync(dir).forEach(f => fs.unlinkSync(path.join(dir, f)));
+  try {
+    for (let i = 0; i < pages.length; i++) {
+      const buf = await renderMenu({ ...pages[i], output_format: "jpg" });
+      fs.writeFileSync(path.join(dir, `page-${i + 1}.jpg`), buf);
+    }
+    await pool.execute("UPDATE public_links SET page_count=?, last_published_at=NOW() WHERE id=?", [pages.length, link.id]);
+    res.json({ ok: true, url: `${process.env.APP_BASE_URL}/p/${link.slug}` });
+  } catch (err) {
+    console.error("❌ LINK PUBLISH:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ===== PUBLIC VIEWER /p/:slug =====
+app.get("/p/:slug", async (req, res) => {
+  const [rows] = await pool.execute("SELECT * FROM public_links WHERE slug=?", [req.params.slug]);
+  if (!rows.length) return res.status(404).send(buildViewerHTML(null));
+  return res.setHeader("Content-Type", "text/html; charset=utf-8").send(buildViewerHTML(rows[0]));
+});
+
+function buildViewerHTML(link) {
+  if (!link || !link.page_count) {
+    const name = link?.name || "";
+    return `<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${name || "No encontrado"}</title><style>*{margin:0;padding:0;box-sizing:border-box}body{background:#060d24;color:#6b7a99;font-family:sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;gap:8px}.logo{font-family:Manrope,sans-serif;font-size:14px;font-weight:700;color:#e8edf8}.logo span{color:#9effc8}</style></head><body><div class="logo"><span>[</span> MENU BAR <span>]</span></div><p>${name ? `${name} · sin contenido publicado` : "Menú no encontrado"}</p></body></html>`;
+  }
+  const images  = Array.from({ length: link.page_count }, (_, i) => `/public_pages/${link.slug}/page-${i + 1}.jpg`);
+  const updated = link.last_published_at
+    ? new Date(link.last_published_at).toLocaleString("es-ES", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })
+    : "";
+  return `<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>${link.name}</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#060d24;color:#e8edf8;font-family:'Inter',sans-serif;min-height:100vh}
+.top{padding:14px 20px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,0.06)}
+.logo{font-family:'Manrope',sans-serif;font-size:14px;font-weight:700}
+.logo span{color:#9effc8}
+.pub-name{font-size:12px;color:#6b7a99;font-family:'Manrope',sans-serif}
+.gallery{display:flex;flex-direction:column;align-items:center;gap:20px;padding:28px 16px}
+.gallery img{max-width:420px;width:100%;border-radius:12px;box-shadow:0 8px 40px rgba(0,0,0,0.6)}
+.footer{text-align:center;font-size:11px;color:#3d4f6e;padding:0 0 32px}
+</style>
+</head>
+<body>
+<div class="top">
+  <div class="logo"><span>[</span> MENU BAR <span>]</span></div>
+  <div class="pub-name">${link.name}</div>
+</div>
+<div class="gallery">
+  ${images.map(src => `<img src="${src}" loading="lazy" alt="Menú">`).join("\n  ")}
+</div>
+<p class="footer">${updated ? `Actualizado ${updated}` : ""}</p>
+</body>
+</html>`;
 }
 
 // Mantener ruta legacy /render-menu por compatibilidad
