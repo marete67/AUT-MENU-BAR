@@ -1,18 +1,27 @@
 {
-  "scripts": {
-    "start": "node server.js"
+  "name": "aut-menu-bar",
+  "private": true,
+  "version": "1.0.0",
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
   },
-  "dependencies": {
-    "@napi-rs/canvas": "^0.1.97",
-    "archiver": "^7.0.1",
-    "axios": "^1.14.0",
-    "canvas": "^3.2.0",
-    "dotenv": "^17.3.1",
-    "express": "^5.2.1",
-    "jsonwebtoken": "^9.0.3",
-    "mysql2": "^3.20.0",
-    "nodemailer": "^8.0.4",
-    "pdfkit": "^0.18.0",
-    "uuid": "^13.0.0"
+  "scripts": {
+    "dev": "concurrently -n API,WEB -c cyan,magenta \"pnpm --filter api dev\" \"pnpm --filter web dev\"",
+    "build": "pnpm --filter shared build && pnpm --filter web build && pnpm --filter api build",
+    "start": "pnpm --filter api start",
+    "db:generate": "dotenv -e .env drizzle-kit generate",
+    "db:migrate": "pnpm --filter api exec tsx src/db/migrate.ts",
+    "db:push": "dotenv -e .env drizzle-kit push",
+    "db:studio": "dotenv -e .env drizzle-kit studio",
+    "create-admin": "pnpm --filter api exec tsx scripts/create-admin.ts",
+    "typecheck": "pnpm -r typecheck",
+    "lint": "pnpm -r lint"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0",
+    "dotenv-cli": "^8.0.0",
+    "drizzle-kit": "^0.30.0",
+    "typescript": "^5.7.0"
   }
 }

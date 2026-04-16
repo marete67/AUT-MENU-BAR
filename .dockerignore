@@ -1,0 +1,44 @@
+# Dependencias (se instalan dentro del contenedor)
+node_modules/
+**/node_modules/
+.pnpm-store/
+
+# Builds anteriores
+**/dist/
+apps/web/dist/
+
+# Entorno (las vars se pasan en Coolify, nunca en imagen)
+.env
+.env.*
+!.env.example
+
+# Storage runtime (se monta como volumen)
+storage/temp/
+storage/public_pages/
+storage/fonts/
+
+# Drizzle meta (generado)
+apps/api/drizzle/meta/
+
+# Logs
+*.log
+logs/
+
+# Tests y herramientas de dev
+**/*.test.ts
+**/*.spec.ts
+coverage/
+
+# Git
+.git/
+.gitignore
+
+# Docs y configuración local
+README.md
+CLAUDE.md
+.vscode/
+.idea/
+
+# Sistema
+.DS_Store
+Thumbs.db

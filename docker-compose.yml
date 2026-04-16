@@ -1,0 +1,72 @@
+# ============================================================
+# Desarrollo local con Docker Compose
+# Levanta MySQL + la app en modo desarrollo (con hot-reload)
+#
+# Uso:
+#   docker compose up db      → solo la base de datos
+#   docker compose up         → BD + app
+#   docker compose down -v    → parar y borrar volúmenes
+# ============================================================
+
+services:
+  # ── Base de datos ──────────────────────────────────────────
+  db:
+    image: mysql:8.4
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root_local
+      MYSQL_DATABASE: menu_bar
+      MYSQL_USER: menu_bar_user
+      MYSQL_PASSWORD: menu_bar_pass
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot_local"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── App (producción containerizada — para probar el build) ──
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      JWT_SECRET: dev_jwt_secret_cambia_esto_en_produccion_32chars
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_NAME: menu_bar
+      DB_USER: menu_bar_user
+      DB_PASS: menu_bar_pass
+      APP_BASE_URL: http://localhost:3001
+      SMTP_HOST: mailpit
+      SMTP_PORT: 1025
+      SMTP_SECURE: "false"
+      SMTP_USER: test
+      SMTP_PASS: test
+      SMTP_FROM: "Menu Bar <noreply@localhost>"
+    volumes:
+      # Persistir storage entre reinicios del contenedor
+      - app_storage:/app/storage
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # ── Servidor de email para desarrollo (captura todos los emails) ──
+  mailpit:
+    image: axllent/mailpit:latest
+    restart: unless-stopped
+    ports:
+      - "1025:1025"   # SMTP
+      - "8025:8025"   # UI web en http://localhost:8025
+
+volumes:
+  mysql_data:
+  app_storage:
