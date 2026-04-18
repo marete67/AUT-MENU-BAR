@@ -1,7 +1,7 @@
 <template>
   <div class="login-wrap">
     <div class="card">
-      <div class="logo"><span>[</span> MENU BAR <span>]</span></div>
+      <div class="logo"><span>[</span> MENU BAR REFACTORED <span>]</span></div>
 
       <form @submit.prevent="handleLogin">
         <div class="field">
