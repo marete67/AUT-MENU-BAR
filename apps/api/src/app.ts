@@ -21,13 +21,14 @@ import linksRoutes from './routes/links/links.route.js'
 import settingsRoutes from './routes/settings/settings.route.js'
 import viewerRoutes from './routes/viewer/viewer.route.js'
 
-// En producción (Docker), el CWD es /app y la estructura es plana.
-// En desarrollo, el CWD es la raíz del monorepo.
+// En Docker el proceso arranca en /app/apps/api (pnpm filter cambia el CWD al paquete).
+// Subimos dos niveles para llegar a la raíz del monorepo (/app).
 const CWD = process.cwd()
+const MONO_ROOT = path.resolve(CWD, '../../')
 
-export const STORAGE_DIR = path.resolve(process.env['STORAGE_DIR'] ?? path.join(CWD, 'storage'))
-export const WEB_DIST    = path.resolve(process.env['WEB_DIST_DIR'] ?? path.join(CWD, 'apps/web/dist'))
-export const ASSETS_DIR  = path.resolve(process.env['ASSETS_DIR'] ?? path.join(CWD, 'assets'))
+export const STORAGE_DIR = path.resolve(process.env['STORAGE_DIR'] ?? path.join(MONO_ROOT, 'storage'))
+export const WEB_DIST    = path.resolve(process.env['WEB_DIST_DIR'] ?? path.join(MONO_ROOT, 'apps/web/dist'))
+export const ASSETS_DIR  = path.resolve(process.env['ASSETS_DIR'] ?? path.join(MONO_ROOT, 'assets'))
 
 // Garantizar que los directorios de storage existen al arrancar
 for (const dir of ['temp', 'public_pages', 'fonts/cache'].map((d) => path.join(STORAGE_DIR, d))) {
@@ -78,7 +79,6 @@ export async function buildApp() {
       root: WEB_DIST,
       prefix: '/',
       decorateReply: false,
-      wildcard: false,
     })
   }
 
@@ -106,8 +106,10 @@ export async function buildApp() {
   await app.register(viewerRoutes)
 
   // ===== SPA FALLBACK (producción) =====
+  // Usamos una ruta wildcard en lugar de setNotFoundHandler para evitar
+  // el conflicto con el handler que registra @fastify/static internamente.
   if (env.NODE_ENV === 'production') {
-    app.setNotFoundHandler(async (_req, reply) => {
+    app.get('/*', async (_req, reply) => {
       return reply.sendFile('index.html', WEB_DIST)
     })
   }
