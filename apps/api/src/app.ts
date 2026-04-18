@@ -95,6 +95,21 @@ export async function buildApp() {
     decorateReply: false,
   })
 
+  // ===== SPA FALLBACK =====
+  // Sirve index.html para cualquier GET que no sea un fichero estático ni una ruta de API.
+  // Debe registrarse ANTES de las rutas de API para que Fastify lo trate como ruta wildcard,
+  // pero @fastify/static ya ha reservado los ficheros reales, así que solo llega aquí
+  // lo que no se ha resuelto antes.
+  if (env.NODE_ENV === 'production') {
+    app.get('/*', (_req, reply) => {
+      const indexPath = path.join(WEB_DIST, 'index.html')
+      if (fs.existsSync(indexPath)) {
+        return reply.type('text/html').send(fs.readFileSync(indexPath))
+      }
+      return reply.status(404).send({ error: 'index.html not found' })
+    })
+  }
+
   // ===== RUTAS API =====
   await app.register(authRoutes,      { prefix: '/api' })
   await app.register(templateRoutes,  { prefix: '/api' })

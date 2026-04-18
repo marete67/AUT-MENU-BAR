@@ -1,7 +1,5 @@
 import fp from 'fastify-plugin'
 import type { FastifyInstance, FastifyError, FastifyRequest, FastifyReply } from 'fastify'
-import fs from 'node:fs'
-import path from 'node:path'
 import { ZodError } from 'zod'
 import { AppError } from '../errors/AppError.js'
 import { env } from '../config/env.js'
@@ -44,17 +42,6 @@ async function sensiblePlugin(fastify: FastifyInstance) {
     },
   )
 
-  // 404 handler — en producción sirve index.html para el SPA fallback
-  fastify.setNotFoundHandler((request, reply) => {
-    if (env.NODE_ENV === 'production' && request.method === 'GET') {
-      const webDist = path.resolve(process.env['WEB_DIST_DIR'] ?? path.join(process.cwd(), '../../apps/web/dist'))
-      const indexPath = path.join(webDist, 'index.html')
-      if (fs.existsSync(indexPath)) {
-        return reply.type('text/html').send(fs.readFileSync(indexPath))
-      }
-    }
-    reply.status(404).send({ error: `Ruta no encontrada: ${request.method} ${request.url}` })
-  })
 }
 
 export default fp(sensiblePlugin, { name: 'sensible' })
