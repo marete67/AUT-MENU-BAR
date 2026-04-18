@@ -79,6 +79,7 @@ export async function buildApp() {
       root: WEB_DIST,
       prefix: '/',
       decorateReply: false,
+      wildcard: false,
     })
   }
 
@@ -106,10 +107,8 @@ export async function buildApp() {
   await app.register(viewerRoutes)
 
   // ===== SPA FALLBACK (producción) =====
-  // Usamos una ruta wildcard en lugar de setNotFoundHandler para evitar
-  // el conflicto con el handler que registra @fastify/static internamente.
   if (env.NODE_ENV === 'production') {
-    app.get('/*', async (_req, reply) => {
+    app.setNotFoundHandler(async (_req, reply) => {
       return reply.sendFile('index.html', WEB_DIST)
     })
   }
