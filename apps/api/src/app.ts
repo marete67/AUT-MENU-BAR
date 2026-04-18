@@ -10,6 +10,10 @@ import fs from 'node:fs'
 import { env } from './config/env.js'
 import authPlugin from './plugins/auth.plugin.js'
 import sensiblePlugin from './plugins/sensible.plugin.js'
+import { db } from './db/index.js'
+import { publicLinks } from './db/schema.js'
+import { buildViewerHTML } from './services/links.service.js'
+import { eq } from 'drizzle-orm'
 
 import authRoutes from './routes/auth/auth.route.js'
 import templateRoutes from './routes/templates/templates.route.js'
@@ -66,6 +70,40 @@ export async function buildApp() {
   // ===== PLUGINS =====
   await app.register(authPlugin)
   await app.register(sensiblePlugin)
+
+  // ===== DOMINIO PERSONALIZADO (hook global) =====
+  // Intercepta cualquier petición cuyo Host no sea el propio servidor.
+  // Si el host coincide con el custom_domain de un public link, sirve el viewer
+  // directamente — sin llegar al SPA fallback ni a ninguna ruta de API.
+  const ownHost = (() => {
+    try { return new URL(env.APP_BASE_URL).hostname } catch { return '' }
+  })()
+
+  app.addHook('onRequest', async (req, reply) => {
+    const host = req.hostname
+    // Ignorar el propio servidor, localhost e IPs
+    if (!host || host === ownHost || host === 'localhost' || host === '127.0.0.1' || /^\d+\.\d+\.\d+\.\d+$/.test(host)) return
+    // Ignorar rutas internas: health check, API, assets estáticos
+    const url = req.url ?? '/'
+    if (url.startsWith('/api/') || url.startsWith('/health') || url.startsWith('/storage/') || url.startsWith('/assets/')) return
+
+    try {
+      const [link] = await db
+        .select()
+        .from(publicLinks)
+        .where(eq(publicLinks.customDomain, host))
+        .limit(1)
+
+      if (link) {
+        return reply
+          .header('Content-Type', 'text/html; charset=utf-8')
+          .header('Cache-Control', 'public, max-age=60')
+          .send(buildViewerHTML(link))
+      }
+    } catch (err) {
+      req.log.error({ err, host }, 'Error en middleware de dominio personalizado')
+    }
+  })
 
   // ===== HEALTH CHECK =====
   // Coolify hace ping a esta ruta para saber si el contenedor está listo
