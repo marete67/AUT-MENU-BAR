@@ -42,10 +42,6 @@ async function sensiblePlugin(fastify: FastifyInstance) {
     },
   )
 
-  // 404 handler
-  fastify.setNotFoundHandler((request, reply) => {
-    reply.status(404).send({ error: `Ruta no encontrada: ${request.method} ${request.url}` })
-  })
 }
 
 export default fp(sensiblePlugin, { name: 'sensible' })
