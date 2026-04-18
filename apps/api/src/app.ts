@@ -106,12 +106,6 @@ export async function buildApp() {
   await app.register(settingsRoutes,  { prefix: '/api' })
   await app.register(viewerRoutes)
 
-  // ===== SPA FALLBACK (producción) =====
-  if (env.NODE_ENV === 'production') {
-    app.setNotFoundHandler(async (_req, reply) => {
-      return reply.sendFile('index.html', WEB_DIST)
-    })
-  }
 
   return app
 }
