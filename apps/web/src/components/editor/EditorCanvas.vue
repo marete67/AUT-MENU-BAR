@@ -17,29 +17,26 @@
       <div
         ref="canvasEl"
         class="canvas-container"
-        :style="{ width: CANVAS_W + 'px', height: CANVAS_H + 'px' }"
+        :style="{ width: canvasW + 'px', height: canvasH + 'px' }"
         @click.self="store.selectBlock(null)"
       >
         <!-- Fondo -->
-        <div
-          class="canvas-bg"
-          :style="fondoStyle"
-        />
+        <div class="canvas-bg" :style="fondoStyle" />
 
         <!-- Guías del centro -->
-        <div class="guide h" :style="{ top: CANVAS_H / 2 + 'px' }" />
-        <div class="guide v" :style="{ left: CANVAS_W / 2 + 'px' }" />
+        <div class="guide h" :style="{ top: canvasH / 2 + 'px' }" />
+        <div class="guide v" :style="{ left: canvasW / 2 + 'px' }" />
 
         <!-- Bloques -->
         <TextBlock
           v-for="block in store.blocks"
           :key="block.id"
           :block="block"
-          :canvas-w="CANVAS_W"
-          :canvas-h="CANVAS_H"
+          :canvas-w="canvasW"
+          :canvas-h="canvasH"
           :scale="scale"
           :selected="store.selectedBlockId === block.id"
-          @select="store.selectBlock(block.id)"
+          @select="onBlockSelect(block.id)"
           @update="(patch) => store.updateBlock(block.id, patch)"
         />
       </div>
@@ -48,7 +45,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, onMounted, onUnmounted } from 'vue'
 import { useEditorStore } from '@/stores/editor.store.js'
 import TextBlock from './TextBlock.vue'
 
@@ -61,12 +58,25 @@ const formats = [
 ]
 
 const REAL_DIMS = { story: { w: 1080, h: 1920 }, folio: { w: 2480, h: 3508 } }
-const DISPLAY_W = 405
+const DESKTOP_W = 405
+
+function getDisplayW() {
+  return window.innerWidth <= 768 ? Math.max(280, window.innerWidth - 16) : DESKTOP_W
+}
+
+const displayW = ref(getDisplayW())
+
+function onResize() {
+  displayW.value = getDisplayW()
+}
+
+onMounted(() => window.addEventListener('resize', onResize))
+onUnmounted(() => window.removeEventListener('resize', onResize))
 
 const realDim = computed(() => REAL_DIMS[store.config.formato ?? 'story'])
-const scale = computed(() => DISPLAY_W / realDim.value.w)
-const CANVAS_W = DISPLAY_W
-const CANVAS_H = computed(() => Math.round(realDim.value.h * scale.value))
+const scale = computed(() => displayW.value / realDim.value.w)
+const canvasW = computed(() => displayW.value)
+const canvasH = computed(() => Math.round(realDim.value.h * scale.value))
 
 const fondoStyle = computed(() => {
   if (store.config.fondo_b64) {
@@ -77,6 +87,14 @@ const fondoStyle = computed(() => {
   }
   return { background: '#1a2547' }
 })
+
+function onBlockSelect(id: string) {
+  store.selectBlock(id)
+  // En móvil, abrir la sección de props al tocar un bloque
+  if (window.innerWidth <= 768) {
+    store.openMobileSection('props')
+  }
+}
 </script>
 
 <style scoped>
@@ -98,9 +116,17 @@ const fondoStyle = computed(() => {
   position: relative; background: #fff; overflow: hidden;
   border-radius: 4px;
   box-shadow: 0 0 0 1px rgba(158,255,200,0.08), 0 20px 60px rgba(0,0,0,0.6);
+  touch-action: none;
 }
 .canvas-bg { position: absolute; inset: 0; pointer-events: none; }
 .guide { position: absolute; background: rgba(244,63,94,0.6); pointer-events: none; }
 .guide.h { left: 0; right: 0; height: 1px; }
 .guide.v { top: 0; bottom: 0; width: 1px; }
+
+@media (max-width: 768px) {
+  .canvas-area {
+    padding: 10px 8px 76px; /* espacio para bottom nav */
+    align-items: flex-start; justify-content: center;
+  }
+}
 </style>

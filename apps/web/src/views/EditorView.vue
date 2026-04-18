@@ -29,6 +29,26 @@
       <!-- SIDEBAR -->
       <EditorSidebar />
     </main>
+
+    <!-- BOTTOM NAV (solo móvil) -->
+    <nav class="bottom-nav">
+      <button class="bn-tab" :class="{ active: store.mobileSection === 'fondo' && store.mobileSheetOpen }" @click="store.toggleMobileSection('fondo')">
+        <span class="bn-icon">🖼</span>
+        <span class="bn-label">Fondo</span>
+      </button>
+      <button class="bn-tab" :class="{ active: store.mobileSection === 'bloques' && store.mobileSheetOpen }" @click="store.toggleMobileSection('bloques')">
+        <span class="bn-icon">☰</span>
+        <span class="bn-label">Bloques</span>
+      </button>
+      <button class="bn-tab" :class="{ active: store.mobileSection === 'props' && store.mobileSheetOpen }" @click="store.toggleMobileSection('props')">
+        <span class="bn-icon">✏️</span>
+        <span class="bn-label">Props</span>
+      </button>
+      <button class="bn-tab" :class="{ active: store.mobileSection === 'preview' && store.mobileSheetOpen }" @click="store.toggleMobileSection('preview')">
+        <span class="bn-icon">👁</span>
+        <span class="bn-label">Preview</span>
+      </button>
+    </nav>
   </div>
 </template>
 
@@ -57,7 +77,6 @@ onMounted(async () => {
   const id = Number(route.params['id'])
 
   if (!id) {
-    // Nueva plantilla — crearla en el backend, cargarla en el store y actualizar la URL
     try {
       const emptyConfig = { formato: 'story' as const, blocks: [] }
       const result = await templatesApi.create({ name: 'Nueva plantilla', config: emptyConfig })
@@ -119,4 +138,41 @@ onMounted(async () => {
 .save-btn:disabled { background: #1a2547; color: #6b7a99; cursor: not-allowed; }
 
 .editor-main { display: flex; flex: 1; overflow: hidden; }
+
+/* BOTTOM NAV */
+.bottom-nav {
+  display: none;
+  position: fixed; bottom: 0; left: 0; right: 0; height: 56px;
+  background: #0f1834; border-top: 1px solid rgba(255,255,255,0.08);
+  z-index: 101; align-items: stretch;
+}
+.bn-tab {
+  flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 2px; background: transparent; border: none; color: #6b7a99; cursor: pointer;
+  font-family: 'Inter', sans-serif; padding: 0; position: relative; transition: color 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.bn-tab.active { color: #00ec9a; }
+.bn-tab.active::after {
+  content: ''; position: absolute; top: 0; left: 20%; right: 20%;
+  height: 2px; background: #00ec9a; border-radius: 0 0 2px 2px;
+}
+.bn-icon { font-size: 20px; line-height: 1; }
+.bn-label { font-size: 10px; font-weight: 600; font-family: 'Manrope', sans-serif; letter-spacing: 0.04em; }
+
+/* MOBILE */
+@media (max-width: 768px) {
+  .editor { height: 100dvh; overflow: hidden; }
+
+  .editor-header {
+    height: auto; flex-wrap: wrap; padding: 8px 12px; gap: 6px; align-items: center;
+  }
+  .logo { font-size: 12px; }
+  .tpl-name-input { order: 10; flex: 1 1 100%; max-width: none; }
+  .header-right { gap: 4px; }
+  .save-status { display: none; }
+  .hdr-btn { padding: 5px 10px; font-size: 11px; }
+
+  .bottom-nav { display: flex; }
+}
 </style>

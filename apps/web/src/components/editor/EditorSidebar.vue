@@ -1,10 +1,9 @@
 <template>
-  <aside class="sidebar">
+  <aside class="sidebar" :class="{ 'sheet-open': store.mobileSheetOpen }">
     <!-- SECCIÓN: FONDO -->
-    <div class="sec">
+    <div class="sec" data-section="fondo" :class="{ 'section-active': store.mobileSection === 'fondo' }">
       <div class="sec-title">Fondo</div>
       <div class="field">
-        <label>Imagen de fondo</label>
         <input type="file" accept="image/*" @change="onFondoChange">
         <div v-if="store.config.fondo_b64 || store.config.fondo_png" class="upload-ok">
           <span>✓ Fondo cargado</span>
@@ -21,7 +20,7 @@
     </div>
 
     <!-- SECCIÓN: BLOQUES -->
-    <div class="sec">
+    <div class="sec" data-section="bloques" :class="{ 'section-active': store.mobileSection === 'bloques' }">
       <div class="sec-title">Bloques de texto</div>
       <div class="block-list">
         <div
@@ -42,14 +41,17 @@
       </div>
     </div>
 
-    <!-- SECCIÓN: PROPIEDADES DEL BLOQUE SELECCIONADO -->
-    <div v-if="store.selectedBlock" class="sec">
+    <!-- SECCIÓN: PROPIEDADES -->
+    <div class="sec" data-section="props" :class="{ 'section-active': store.mobileSection === 'props' }">
       <div class="sec-title">Propiedades</div>
-      <BlockPropsPanel :block="store.selectedBlock" @update="(p) => store.updateBlock(store.selectedBlock!.id, p)" />
+      <template v-if="store.selectedBlock">
+        <BlockPropsPanel :block="store.selectedBlock" @update="(p) => store.updateBlock(store.selectedBlock!.id, p)" />
+      </template>
+      <p v-else class="no-selection">Selecciona un bloque en el canvas</p>
     </div>
 
     <!-- SECCIÓN: PREVISUALIZACIÓN -->
-    <div class="sec">
+    <div class="sec" data-section="preview" :class="{ 'section-active': store.mobileSection === 'preview' }">
       <div class="sec-title">Previsualización</div>
       <button class="btn-preview" :disabled="previewing" @click="handlePreview">
         {{ previewing ? 'Generando...' : 'Renderizar preview' }}
@@ -81,7 +83,6 @@ async function onFondoChange(e: Event) {
   const reader = new FileReader()
   reader.onload = () => {
     const result = reader.result as string
-    // Quitar el prefijo "data:image/...;base64,"
     const b64 = result.split(',')[1] ?? ''
     store.updateConfig({ fondo_b64: b64, fondo_png: undefined })
   }
@@ -149,13 +150,14 @@ async function handlePreview() {
 .add-btn {
   padding: 7px; border-radius: 4px; cursor: pointer; font-size: 11px;
   font-weight: 600; font-family: 'Manrope', sans-serif; text-align: center;
-  background: transparent; border: 1.5px dashed;
-  transition: all 0.15s;
+  background: transparent; border: 1.5px dashed; transition: all 0.15s;
 }
 .add-btn.var { border-color: rgba(129,140,248,0.4); color: #818cf8; }
 .add-btn.var:hover { background: rgba(129,140,248,0.1); }
 .add-btn.sta { border-color: rgba(245,158,11,0.4); color: #f59e0b; }
 .add-btn.sta:hover { background: rgba(245,158,11,0.1); }
+
+.no-selection { font-size: 11px; color: #6b7a99; text-align: center; padding: 8px 0; }
 
 .btn-preview {
   background: #151e3c; color: #6b7a99;
@@ -169,4 +171,31 @@ async function handlePreview() {
 .prev-status.err { font-size: 11px; color: #d7383b; }
 .prev-img { width: 100%; border-radius: 4px; margin-top: 4px; }
 .prev-dl { display: block; text-align: center; font-size: 11px; color: #00ec9a; text-decoration: none; padding: 4px; font-family: 'Manrope', sans-serif; }
+
+/* MOBILE: bottom sheet */
+@media (max-width: 768px) {
+  .sidebar {
+    position: fixed; bottom: 56px; left: 0; right: 0;
+    width: 100% !important; flex-shrink: 0;
+    max-height: 58vh;
+    background: #0f1834;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    border-left: none;
+    border-radius: 16px 16px 0 0;
+    box-shadow: 0 -4px 32px rgba(0,0,0,0.55);
+    transform: translateY(100%);
+    transition: transform 0.28s cubic-bezier(0.4,0,0.2,1);
+    z-index: 100; overflow-y: auto; -webkit-overflow-scrolling: touch;
+  }
+  .sidebar::before {
+    content: ''; display: block; width: 36px; height: 4px;
+    background: rgba(255,255,255,0.18); border-radius: 2px;
+    margin: 10px auto 4px; flex-shrink: 0;
+  }
+  .sidebar.sheet-open { transform: translateY(0); }
+
+  /* En móvil, cada sección oculta; solo muestra la activa */
+  .sec { display: none; }
+  .sec.section-active { display: flex; }
+}
 </style>
