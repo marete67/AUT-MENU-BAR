@@ -197,5 +197,5 @@ export async function renderMenu(data: RenderPage): Promise<Buffer> {
   if (data.output_format === 'jpg' || data.output_format === 'jpeg') {
     return canvas.encode('jpeg')
   }
-  return canvas.toBuffer()
+  return canvas.toBuffer('image/png' as 'image/jpeg')
 }
