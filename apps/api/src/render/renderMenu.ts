@@ -1,4 +1,5 @@
 import { createCanvas, loadImage, GlobalFonts } from '@napi-rs/canvas'
+import type { SKRSContext2D } from '@napi-rs/canvas'
 import path from 'node:path'
 import fs from 'node:fs'
 import https from 'node:https'
@@ -86,13 +87,13 @@ async function resolveFont(family: string): Promise<string> {
 }
 
 // ===== TEXT RENDERING =====
-function measureWithSpacing(ctx: ReturnType<typeof createCanvas>['getContext'], text: string, spacing: number): number {
+function measureWithSpacing(ctx: SKRSContext2D, text: string, spacing: number): number {
   let w = 0
   for (const char of text) w += ctx.measureText(char).width + spacing
   return w - spacing
 }
 
-function drawWithSpacing(ctx: ReturnType<typeof createCanvas>['getContext'], text: string, x: number, y: number, spacing: number): void {
+function drawWithSpacing(ctx: SKRSContext2D, text: string, x: number, y: number, spacing: number): void {
   let cur = x
   for (const char of text) {
     ctx.fillText(char, cur, y)
@@ -101,7 +102,7 @@ function drawWithSpacing(ctx: ReturnType<typeof createCanvas>['getContext'], tex
 }
 
 function drawLine(
-  ctx: ReturnType<typeof createCanvas>['getContext'],
+  ctx: SKRSContext2D,
   text: string,
   blockX: number,
   blockW: number,
@@ -193,8 +194,8 @@ export async function renderMenu(data: RenderPage): Promise<Buffer> {
     }
   }
 
-  const outFmt =
-    data.output_format === 'jpg' || data.output_format === 'jpeg' ? 'image/jpeg' : 'image/png'
+  const outFmt: 'jpeg' | 'png' =
+    data.output_format === 'jpg' || data.output_format === 'jpeg' ? 'jpeg' : 'png'
 
-  return canvas.toBuffer(outFmt)
+  return canvas.encode(outFmt)
 }

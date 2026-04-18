@@ -2,10 +2,7 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "outDir": "./dist",
-    "rootDir": ".",
-    "paths": {
-      "@menu-bar/shared": ["../../packages/shared/src/index.ts"]
-    }
+    "rootDir": "."
   },
   "include": ["src", "scripts"]
 }

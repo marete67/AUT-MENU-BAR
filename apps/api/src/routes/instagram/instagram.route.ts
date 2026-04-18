@@ -36,7 +36,7 @@ export default async function instagramRoutes(fastify: FastifyInstance) {
   // GET /api/instagram/connect — redirige al OAuth de Meta
   fastify.get('/instagram/connect', auth, async (req, reply) => {
     // Estado firmado con JWT para validar el callback
-    const state = fastify.jwt.sign({ userId: req.user.id }, { expiresIn: '10m' })
+    const state = fastify.jwt.sign({ userId: req.user.id } as unknown as Parameters<typeof fastify.jwt.sign>[0], { expiresIn: '10m' })
     const url = buildOAuthURL(state)
     return reply.redirect(url)
   })
