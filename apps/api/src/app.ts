@@ -78,6 +78,7 @@ export async function buildApp() {
       root: WEB_DIST,
       prefix: '/',
       decorateReply: false,
+      wildcard: false,
     })
   }
 
