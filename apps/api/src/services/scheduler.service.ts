@@ -2,7 +2,7 @@ import fs from 'node:fs/promises'
 import path from 'node:path'
 import { randomUUID } from 'node:crypto'
 import { lte, eq, and, or, isNull } from 'drizzle-orm'
-import type { Logger } from 'pino'
+import type { FastifyBaseLogger } from 'fastify'
 import { db } from '../db/index.js'
 import { scheduledEmails, scheduledPosts } from '../db/schema.js'
 import { sendMenuEmail } from './email.service.js'
@@ -21,7 +21,7 @@ const INTERVAL_MS = 60_000
 
 let emailInterval: ReturnType<typeof setInterval> | null = null
 let igInterval: ReturnType<typeof setInterval> | null = null
-let log: Logger
+let log: FastifyBaseLogger
 
 function retryDelay(retryCount: number): Date {
   // Backoff exponencial: 2^n minutos (1min, 2min, 4min)
@@ -151,7 +151,7 @@ async function processScheduledPosts() {
   }
 }
 
-export function startScheduler(logger: Logger) {
+export function startScheduler(logger: FastifyBaseLogger) {
   log = logger
   log.info('🕐 Scheduler arrancado')
 

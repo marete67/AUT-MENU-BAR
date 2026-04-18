@@ -39,10 +39,9 @@ export async function buildApp() {
     bodyLimit: 25 * 1024 * 1024,
     logger: {
       level: env.NODE_ENV === 'production' ? 'info' : 'debug',
-      transport:
-        env.NODE_ENV !== 'production'
-          ? { target: 'pino-pretty', options: { colorize: true } }
-          : undefined,
+      ...(env.NODE_ENV !== 'production'
+        ? { transport: { target: 'pino-pretty', options: { colorize: true } } }
+        : {}),
     },
   })
 

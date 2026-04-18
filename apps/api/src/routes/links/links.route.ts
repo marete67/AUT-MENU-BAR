@@ -34,11 +34,13 @@ export default async function linksRoutes(fastify: FastifyInstance) {
 
   // POST /api/links
   fastify.post('/links', auth, async (req, reply) => {
-    const [[{ total }], [userRow]] = await Promise.all([
+    const [countRows, userRows] = await Promise.all([
       db.select({ total: count() }).from(publicLinks).where(eq(publicLinks.userId, req.user.id)),
       db.select({ maxPublicLinks: users.maxPublicLinks }).from(users).where(eq(users.id, req.user.id)).limit(1),
     ])
 
+    const total = countRows[0]?.total ?? 0
+    const userRow = userRows[0]
     const max = userRow?.maxPublicLinks ?? 3
     if (total >= max) {
       throw AppError.conflict(`Máximo ${max} links públicos por cuenta`)
