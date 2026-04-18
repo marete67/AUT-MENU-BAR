@@ -3,8 +3,8 @@
     class="text-block"
     :class="{ selected, 'is-static': block.type === 'static' }"
     :style="blockStyle"
-    @mousedown.stop="onMouseDown"
-    @click.stop="emit('select')"
+    @pointerdown.stop="onPointerDown"
+    @click.stop
   >
     <div class="band">
       <span class="type-badge" :class="block.type">
@@ -14,12 +14,12 @@
       <span class="block-prev">{{ preview }}</span>
     </div>
     <!-- Handle de resize horizontal -->
-    <div class="resize-handle" @mousedown.stop="onResizeDown" />
+    <div class="resize-handle" @pointerdown.stop="onResizeDown" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, onUnmounted } from 'vue'
+import { computed, onUnmounted, ref } from 'vue'
 import type { EditorBlock } from '@/stores/editor.store.js'
 
 const props = defineProps<{
@@ -47,63 +47,84 @@ const preview = computed(() => {
   return Array.isArray(c) ? c.join(' / ') : String(c).split('\n')[0] ?? ''
 })
 
-// ===== DRAG =====
-let dragStart: { mouseX: number; mouseY: number; blockX: number; blockY: number } | null = null
+// ===== DRAG (pointer events — mouse + touch) =====
+let dragEl: Element | null = null
+let dragStart: { x: number; y: number; blockX: number; blockY: number; moved: boolean } | null = null
 
-function onMouseDown(e: MouseEvent) {
+function onPointerDown(e: PointerEvent) {
   emit('select')
+  dragEl = e.currentTarget as Element
+  dragEl.setPointerCapture(e.pointerId)
   dragStart = {
-    mouseX: e.clientX,
-    mouseY: e.clientY,
+    x: e.clientX,
+    y: e.clientY,
     blockX: props.block.x,
     blockY: props.block.y,
+    moved: false,
   }
-  window.addEventListener('mousemove', onDragMove)
-  window.addEventListener('mouseup', onDragEnd)
+  e.preventDefault()
 }
 
-function onDragMove(e: MouseEvent) {
+function onPointerMove(e: PointerEvent) {
   if (!dragStart) return
-  const dx = (e.clientX - dragStart.mouseX) / props.scale
-  const dy = (e.clientY - dragStart.mouseY) / props.scale
+  const dx = (e.clientX - dragStart.x) / props.scale
+  const dy = (e.clientY - dragStart.y) / props.scale
+  if (!dragStart.moved && (Math.abs(e.clientX - dragStart.x) > 3 || Math.abs(e.clientY - dragStart.y) > 3)) {
+    dragStart.moved = true
+  }
   emit('update', {
-    x: Math.max(0, dragStart.blockX + dx),
+    x: Math.max(0, Math.min(dragStart.blockX + dx, (props.canvasW / props.scale) - props.block.w)),
     y: Math.max(0, dragStart.blockY + dy),
   })
 }
 
-function onDragEnd() {
+function onPointerUp() {
   dragStart = null
-  window.removeEventListener('mousemove', onDragMove)
-  window.removeEventListener('mouseup', onDragEnd)
+  dragEl = null
 }
 
-// ===== RESIZE =====
-let resizeStart: { mouseX: number; blockW: number } | null = null
+// ===== RESIZE (pointer events) =====
+let resizeEl: Element | null = null
+let resizeStart: { x: number; blockW: number } | null = null
 
-function onResizeDown(e: MouseEvent) {
-  resizeStart = { mouseX: e.clientX, blockW: props.block.w }
-  window.addEventListener('mousemove', onResizeMove)
-  window.addEventListener('mouseup', onResizeEnd)
+function onResizeDown(e: PointerEvent) {
+  resizeEl = e.currentTarget as Element
+  resizeEl.setPointerCapture(e.pointerId)
+  resizeStart = { x: e.clientX, blockW: props.block.w }
+  e.preventDefault()
 }
 
-function onResizeMove(e: MouseEvent) {
+function onResizeMove(e: PointerEvent) {
   if (!resizeStart) return
-  const dx = (e.clientX - resizeStart.mouseX) / props.scale
+  const dx = (e.clientX - resizeStart.x) / props.scale
   emit('update', { w: Math.max(50, resizeStart.blockW + dx) })
 }
 
-function onResizeEnd() {
+function onResizeUp() {
   resizeStart = null
-  window.removeEventListener('mousemove', onResizeMove)
-  window.removeEventListener('mouseup', onResizeEnd)
+  resizeEl = null
 }
 
+// Registrar en window para capturar fuera del elemento
+const isMounted = ref(true)
+
+function globalPointerMove(e: PointerEvent) {
+  if (dragStart) onPointerMove(e)
+  if (resizeStart) onResizeMove(e)
+}
+
+function globalPointerUp(e: PointerEvent) {
+  if (dragStart) onPointerUp()
+  if (resizeStart) onResizeUp()
+}
+
+window.addEventListener('pointermove', globalPointerMove)
+window.addEventListener('pointerup', globalPointerUp)
+
 onUnmounted(() => {
-  window.removeEventListener('mousemove', onDragMove)
-  window.removeEventListener('mouseup', onDragEnd)
-  window.removeEventListener('mousemove', onResizeMove)
-  window.removeEventListener('mouseup', onResizeEnd)
+  isMounted.value = false
+  window.removeEventListener('pointermove', globalPointerMove)
+  window.removeEventListener('pointerup', globalPointerUp)
 })
 </script>
 
@@ -111,6 +132,7 @@ onUnmounted(() => {
 .text-block {
   position: absolute; cursor: move; user-select: none;
   min-width: 50px; min-height: 22px;
+  touch-action: none;
 }
 .band {
   min-height: 22px; border-radius: 2px;
@@ -152,9 +174,15 @@ onUnmounted(() => {
   background: rgba(129,140,248,0.15);
   border-left: 1px solid rgba(129,140,248,0.3);
   border-radius: 0 2px 2px 0;
+  touch-action: none;
 }
 .is-static .resize-handle {
   background: rgba(245,158,11,0.15);
   border-color: rgba(245,158,11,0.3);
+}
+
+/* Resize handle más ancho en móvil para facilitar el toque */
+@media (max-width: 768px) {
+  .resize-handle { width: 22px; }
 }
 </style>

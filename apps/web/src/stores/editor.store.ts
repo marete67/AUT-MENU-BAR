@@ -19,6 +19,26 @@ export const useEditorStore = defineStore('editor', () => {
   const saving = ref(false)
   const saveStatus = ref<'idle' | 'saving' | 'saved' | 'error'>('idle')
   const dirty = ref(false)
+  const mobileSection = ref<string | null>(null)
+  const mobileSheetOpen = ref(false)
+
+  function openMobileSection(name: string) {
+    mobileSection.value = name
+    mobileSheetOpen.value = true
+  }
+
+  function closeMobileSection() {
+    mobileSheetOpen.value = false
+    mobileSection.value = null
+  }
+
+  function toggleMobileSection(name: string) {
+    if (mobileSection.value === name && mobileSheetOpen.value) {
+      closeMobileSection()
+    } else {
+      openMobileSection(name)
+    }
+  }
 
   const selectedBlock = computed(() =>
     blocks.value.find((b) => b.id === selectedBlockId.value) ?? null,
@@ -106,7 +126,8 @@ export const useEditorStore = defineStore('editor', () => {
   return {
     templateId, templateName, config, blocks, selectedBlockId, selectedBlock,
     saving, saveStatus, dirty,
+    mobileSection, mobileSheetOpen,
     loadTemplate, addBlock, updateBlock, deleteBlock, selectBlock, updateConfig,
-    toRenderConfig, save,
+    toRenderConfig, save, openMobileSection, closeMobileSection, toggleMobileSection,
   }
 })
