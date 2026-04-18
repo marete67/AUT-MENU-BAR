@@ -7,6 +7,7 @@ import {
   datetime,
   mysqlEnum,
 } from 'drizzle-orm/mysql-core'
+import { relations } from 'drizzle-orm'
 
 export const users = mysqlTable('users', {
   id: int('id').autoincrement().primaryKey(),
@@ -77,3 +78,28 @@ export const publicLinks = mysqlTable('public_links', {
   lastPublishedAt: datetime('last_published_at'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 })
+
+// ===== RELATIONS =====
+
+export const usersRelations = relations(users, ({ many }) => ({
+  templates: many(templates),
+  scheduledEmails: many(scheduledEmails),
+  scheduledPosts: many(scheduledPosts),
+  publicLinks: many(publicLinks),
+}))
+
+export const templatesRelations = relations(templates, ({ one }) => ({
+  user: one(users, { fields: [templates.userId], references: [users.id] }),
+}))
+
+export const scheduledEmailsRelations = relations(scheduledEmails, ({ one }) => ({
+  user: one(users, { fields: [scheduledEmails.userId], references: [users.id] }),
+}))
+
+export const scheduledPostsRelations = relations(scheduledPosts, ({ one }) => ({
+  user: one(users, { fields: [scheduledPosts.userId], references: [users.id] }),
+}))
+
+export const publicLinksRelations = relations(publicLinks, ({ one }) => ({
+  user: one(users, { fields: [publicLinks.userId], references: [users.id] }),
+}))
