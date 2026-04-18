@@ -194,8 +194,8 @@ export async function renderMenu(data: RenderPage): Promise<Buffer> {
     }
   }
 
-  const outFmt: 'jpeg' | 'png' =
-    data.output_format === 'jpg' || data.output_format === 'jpeg' ? 'jpeg' : 'png'
-
-  return canvas.encode(outFmt)
+  if (data.output_format === 'jpg' || data.output_format === 'jpeg') {
+    return canvas.encode('jpeg')
+  }
+  return canvas.toBuffer()
 }
