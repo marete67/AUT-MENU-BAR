@@ -1,1 +1,34 @@
+# Entorno
+.env
+.env.local
+.env.*.local
+
+# Dependencias
 node_modules/
+.pnpm-store/
+
+# Builds
+dist/
+*.js.map
+*.d.ts
+*.d.ts.map
+
+# Drizzle
+apps/api/drizzle/meta/
+
+# Storage (generado en runtime)
+storage/temp/
+storage/fonts/cache/
+
+# Logs
+*.log
+logs/
+
+# Sistema
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/settings.json
+.idea/
+*.swp
