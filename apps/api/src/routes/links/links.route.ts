@@ -11,6 +11,22 @@ import { env } from '../../config/env.js'
 export default async function linksRoutes(fastify: FastifyInstance) {
   const auth = { preHandler: fastify.authenticate }
 
+  // GET /api/check-domain?domain=menu.restaurante.com
+  // Caddy llama a este endpoint antes de emitir un certificado SSL on-demand.
+  // Devuelve 200 si el dominio está registrado, 404 si no.
+  fastify.get('/check-domain', async (req, reply) => {
+    const domain = (req.query as Record<string, string>)['domain']
+    if (!domain) return reply.status(400).send()
+
+    const [link] = await db
+      .select({ id: publicLinks.id })
+      .from(publicLinks)
+      .where(eq(publicLinks.customDomain, domain))
+      .limit(1)
+
+    return link ? reply.status(200).send() : reply.status(404).send()
+  })
+
   // GET /api/links
   fastify.get('/links', auth, async (req, reply) => {
     const rows = await db
